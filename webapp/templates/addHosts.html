@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="hero-body">
+    <div class="container">
+        <p class="title">Add Single Host</p>
+        <form method="POST" action="{{ url_for('main.add_hosts') }}">
+            <div class="field">
+                <label class="label">IP Address</label>
+                <div class="control">
+                    <input class="input" type="text" placeholder="IP Address" id="ip" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Hostname/Alias</label>
+                <div class="control">
+                    <input class="input" type="text" placeholder="IP Address" id="hostname" required>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-info">Submit</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="hero-body">
+    <div class="container">
+        <p class="title">Add Multiple Hosts</p>
+        <p class="help">Upload a file with multiple hosts, hosts must be delimited with a new line. Each host can be
+            comma delimited with ip_address,hostname. Example:<br><i>127.0.0.1,localhost<br>1982.168.1.100,firewall</i>
+        </p>
+        <br>
+        <form>
+            <div class="file has-name is-fullwidth">
+                <label class="file-label" id="hostsfile">
+                    <input class="file-input" type="file" id="uploaded_file">
+                    <span class="file-cta">
+                        <span class="file-icon">
+                            <i class="fas fa-upload"></i>
+                        </span>
+                        <span class="file-label">
+                            Choose a file…
+                        </span>
+                    </span>
+                    <span class="file-name">
+                        No file selected
+                    </span>
+                </label>
+            </div>
+            <br>
+            <div class="control">
+                <button class="button is-info">Submit</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+
+<script>
+    const fileInput = document.querySelector('#hostsfile input[type=file]');
+    fileInput.onchange = () => {
+        if (fileInput.files.length > 0) {
+            const fileName = document.querySelector('#hostsfile .file-name');
+            fileName.textContent = fileInput.files[0].name;
+        }
+    }
+</script>
+
+{% endblock %}

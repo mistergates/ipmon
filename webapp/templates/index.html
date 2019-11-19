@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="hero-body">
+  <div class="container has-text-centered">
+    <nav class="level">
+      <div class="level-item">
+        <div>
+          <p class="heading">Total Hosts</p>
+          <a class="title has-text-primary">3,456</a>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Online Hosts</p>
+          <a class="title has-text-success">123</a>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Offline Hosts</p>
+          <a class="title has-text-danger">456K</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</section>
+
+<section class="hero-body">
+  <div class="container has-text-centered">
+    <table class="table is-fullwidth is-hoverable is-striped">
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Hostname</th>
+          <th>Last Poll</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>127.0.0.1</td>
+          <td>Localhost</td>
+          <td>11/18/2019 9:18 AM</td>
+          <td>Online</td>
+        </tr>
+        <tr>
+          <td>127.0.0.1</td>
+          <td>Localhost</td>
+          <td>11/18/2019 9:18 AM</td>
+          <td>Online</td>
+        </tr>
+        <tr>
+          <td>127.0.0.1</td>
+          <td>Localhost</td>
+          <td>11/18/2019 9:18 AM</td>
+          <td>Online</td>
+        </tr>
+        <tr>
+          <td>127.0.0.1</td>
+          <td>Localhost</td>
+          <td>11/18/2019 9:18 AM</td>
+          <td>Online</td>
+        </tr>
+        <tr>
+          <td>127.0.0.1</td>
+          <td>Localhost</td>
+          <td>11/18/2019 9:18 AM</td>
+          <td>Online</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}

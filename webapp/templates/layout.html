@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Asap:400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/bulma.css">
+    <script defer src="/static/fontawesome/js/all.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <section class="hero is-primary is-medium">
+        <!-- Hero head: will stick at the top -->
+        <div class="hero-head">
+            <nav class="navbar">
+                <div class="container">
+                    <div class="navbar-brand">
+                        <a href="{{ url_for('main.index') }}" class="navbar-item is-size-3 has-text-white">
+                            IP Monitoring&nbsp;&nbsp;&nbsp;<i class="fas fa-network-wired has-text-success"></i>
+                        </a>
+                        <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+                    <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-end">
+                            {% if current_user.is_authenticated %}
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">
+                                    {{current_user.id}}
+                                </a>
+
+                                <div class="navbar-dropdown">
+                                    <a href="{{ url_for('auth.logout') }}" class="navbar-item">
+                                        Log Out
+                                    </a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="navbar-item">
+                                Log in
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </div>
+        </nav>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns">
+                    {% if current_user.is_authenticated %}
+                    <div class="column is-2">
+                        <aside class="menu is-inline-block">
+                            <p class="menu-label">
+                                General
+                            </p>
+                            <ul class="menu-list">
+                                <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                            </ul>
+                            <p class="menu-label">
+                                Manage Hosts
+                            </p>
+                            <ul class="menu-list">
+                                <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
+                                <li><a>Remove Hosts</a></li>
+                            </ul>
+                            <p class="menu-label">
+                                Polling
+                            </p>
+                            <ul class="menu-list">
+                                <li><a>Change Poll Time</a></li>
+                            </ul>
+                            <p class="menu-label">
+                                Alerts
+                            </p>
+                            <ul class="menu-list">
+                                <li><a>Configure Alerts</a></li>
+                                <li><a>Add Recipients</a></li>
+                                <li><a>Remove Recipients</a></li>
+                            </ul>
+                        </aside>
+                    </div>
+                    {% endif %}
+                    <div class="column">
+                        {% block content %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Get all "navbar-burger" elements
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+        // Check if there are any navbar burgers
+        if ($navbarBurgers.length > 0) {
+
+            // Add a click event on each of them
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+
+                    // Get the target from the "data-target" attribute
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+
+                });
+            });
+        }
+
+    });
+</script>
+
+</html>
