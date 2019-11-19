@@ -8,19 +8,19 @@
       <div class="level-item">
         <div>
           <p class="heading">Total Hosts</p>
-          <a class="title has-text-primary">3,456</a>
+          <a class="title has-text-primary">{{ num_hosts }}</a>
         </div>
       </div>
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">Online Hosts</p>
-          <a class="title has-text-success">123</a>
+          <a class="title has-text-success">{{ num_up }}</a>
         </div>
       </div>
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">Offline Hosts</p>
-          <a class="title has-text-danger">456K</a>
+          <a class="title has-text-danger">{{ num_down }}</a>
         </div>
       </div>
     </nav>
@@ -29,7 +29,7 @@
 
 <section class="hero-body">
   <div class="container has-text-centered">
-    <table class="table is-fullwidth is-hoverable is-striped">
+    <table class="table is-fullwidth is-hoverable is-striped" id="ip_status">
       <thead>
         <tr>
           <th>IP Address</th>
@@ -39,39 +39,83 @@
         </tr>
       </thead>
       <tbody>
+        {% for host in hosts %}
         <tr>
-          <td>127.0.0.1</td>
-          <td>Localhost</td>
-          <td>11/18/2019 9:18 AM</td>
-          <td>Online</td>
+          <td>{{ host['ip_address'] }}</td>
+          <td>{{ host['hostname'] }}</td>
+          <td>{{ host['last_poll'] }}</td>
+          {% if host['status'] == 'Up' %}
+          <td class="has-text-success">{{ host['status'] }}</td>
+          {% else %}
+          <td class="has-text-danger">{{ host['status'] }}</td>
+          {% endif %}
         </tr>
-        <tr>
-          <td>127.0.0.1</td>
-          <td>Localhost</td>
-          <td>11/18/2019 9:18 AM</td>
-          <td>Online</td>
-        </tr>
-        <tr>
-          <td>127.0.0.1</td>
-          <td>Localhost</td>
-          <td>11/18/2019 9:18 AM</td>
-          <td>Online</td>
-        </tr>
-        <tr>
-          <td>127.0.0.1</td>
-          <td>Localhost</td>
-          <td>11/18/2019 9:18 AM</td>
-          <td>Online</td>
-        </tr>
-        <tr>
-          <td>127.0.0.1</td>
-          <td>Localhost</td>
-          <td>11/18/2019 9:18 AM</td>
-          <td>Online</td>
-        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
 </section>
+
+<!-- Poll Hosts -->
+<script>
+  function updateTable() {
+    $.ajax({
+      url: '/pollHosts',
+      type: 'GET',
+      success: function (response) {
+        var json_data = JSON.parse(response)
+        // https://stackoverflow.com/questions/33682122/datatables-generate-whole-table-from-json
+        var json = {
+          "columns": [
+            {"data": "hostname", "title": "Hostname"},
+            {"data": "ip_address", "title": "IP Address"},
+            {"data": "last_poll", "title": "Last Poll"},
+            {"data": "status", "title": "Status"}
+          ],
+          "data": json_data
+        }
+
+        var table = $('#ip_status').DataTable({
+          data : json.data,
+          columns : json.columns
+        })
+        // table.clear();
+        table.draw();
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    setInterval(updateTable, 5000);
+  });
+
+// var table = $('#ip_status').DataTable();
+
+// function update_table() {
+//     $.ajax({
+//       url: '/pollHosts',
+//       type: 'get',
+//       success: function (response) {
+//         var data = JSON.parse(response)
+//         console.log(data)
+//         var table = $('#ip_status').DataTable();
+//         table.clear();
+//         table.rows.add(
+//           data['ip_address'],
+//           data['hostname'],
+//           data['last_poll'],
+//           data['status']
+//         ).draw();
+//       }
+//   });
+// }
+
+// setInterval( function () {
+//     update_table();
+//     // table.ajax.reload( null, false ); // user paging is not reset on reload
+// }, 5000 );
+
+
+</script>
 
 {% endblock %}

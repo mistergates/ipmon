@@ -15,7 +15,7 @@ try:
     from webapp import db, config, app
     from webapp.database import Users
 except ImportError:
-    print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'requirements.txt')))
+    print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'requirements.txt')))
     sys.exit(1)
 
 def check_existing_database():

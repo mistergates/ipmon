@@ -1,7 +1,18 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<!-- Notifications -->
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="notification is-success">
+        {{ messages[0] }}
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
 
+<!-- Add Single Host -->
 <section class="hero-body">
     <div class="container">
         <p class="title">Add Single Host</p>
@@ -9,13 +20,13 @@
             <div class="field">
                 <label class="label">IP Address</label>
                 <div class="control">
-                    <input class="input" type="text" placeholder="IP Address" id="ip" required>
+                    <input class="input" type="text" placeholder="IP Address" name="ip" required>
                 </div>
             </div>
             <div class="field">
                 <label class="label">Hostname/Alias</label>
                 <div class="control">
-                    <input class="input" type="text" placeholder="IP Address" id="hostname" required>
+                    <input class="input" type="text" placeholder="IP Address" name="hostname" required>
                 </div>
             </div>
             <div class="control">
@@ -25,6 +36,7 @@
     </div>
 </section>
 
+<!-- Add Multiple Hosts -->
 <section class="hero-body">
     <div class="container">
         <p class="title">Add Multiple Hosts</p>

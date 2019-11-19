@@ -27,19 +27,10 @@ class Hosts(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(length=15), nullable=False)
+    ip_address = db.Column(db.String(length=15), nullable=False, unique=True)
     hostname = db.Column(db.String(length=100))
-
-
-class HostStatus(db.Model):
-    '''Host Status'''
-    __tablename__ = 'host_status'
-    __table_args__ = {'extend_existing': True}
-
-    id = db.Column(db.Integer, primary_key=True)
-    host_id = db.Column(db.String(length=15), db.ForeignKey('hosts.id'))
     status = db.Column(db.String(length=10))
-    last_poll = db.Column(db.Date)
+    last_poll = db.Column(db.String(length=20))
 
 
 ##########################
@@ -52,12 +43,13 @@ class UserSchema(Schema):
         fields = ('id', 'username', 'password', 'email', 'date_created')
 
 
-class HostStatusSchema(Schema):
-    '''Host Status Schema'''
+class HostsSchema(Schema):
+    '''Hosts Schema'''
     class Meta:
         '''Meta'''
-        fields = ('id', 'host_id', 'status', 'last_poll')
+        fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll')
 
 
 USER_SCHEMA = UserSchema()
-HOST_STATUS_SCHEMA = HostStatusSchema()
+HOST_SCHEMA = HostsSchema()
+HOSTS_SCHEMA = HostsSchema(many=True)
