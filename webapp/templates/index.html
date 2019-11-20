@@ -2,7 +2,6 @@
 
 {% block content %}
 
-<section class="hero-body">
   <div class="container has-text-centered">
     <nav class="level">
       <div class="level-item">
@@ -25,16 +24,34 @@
       </div>
     </nav>
   </div>
-</section>
 
-<section class="hero-body">
   <div class="container has-text-centered">
-    <progress class="progress is-large is-info" max="100" id="progress">50%</progress>
     <table class="table is-fullwidth is-hoverable is-striped" id="ip_status">
-      <!-- Datatable Generated Here -->
+      <thead>
+        <tr>
+          <th>Hostname</th>
+          <th>IP Address</th>
+          <th>Last Poll</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for host in hosts %}
+        <tr>
+          <td>{{ host['hostname'] }}</td>
+          <td>{{ host['ip_address'] }}</td>
+          <td>{{ host['last_poll'] }}</td>
+          {% if host['status'] == 'Up' %}
+          <td class="has-text-success"><i class="fas fa-arrow-circle-up"></i></td>
+          {% else %}
+          <td class="has-text-danger"><i class="fas fa-arrow-circle-down"></i></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
-</section>
+
 
 <!-- Poll Hosts -->
 <script>
@@ -80,11 +97,13 @@
   }
 
   // Show progress bar until datatable loads
-  // Update datatable at interval of {{ poll_time }} seconds
-  $(document).ready(async function () {
-    await updateTable();
-    await $("#progress").hide();
-    setInterval(updateTable, {{ poll_time }});
+  // Update datatable at interval of {{ poll_interval }} seconds
+  $(document).ready(function () {
+    $('#ip_status').DataTable({
+      paging: false,
+      stateSave: true
+    });
+    setInterval(updateTable, {{ poll_interval }});
   });
 
 </script>

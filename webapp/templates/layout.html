@@ -3,15 +3,14 @@
 
 <head>
     <link rel="stylesheet" href="/static/css/bulma.css">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script type="text/javascript"
-        src="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.js"></script>
-    <script defer src="/static/fontawesome/js/all.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/datatables.css" />
+    <script type="text/javascript" src="/static/javascript/jquery.js"></script>
+    <script type="text/javascript" src="/static/javascript/datatables.js"></script>
+    <script type="text/javascript" defer src="/static/fontawesome/js/all.js"></script>
 </head>
 
 <body>
+    <!-- Header -->
     <section class="hero is-primary is-medium">
         <div class="hero-head">
             <nav class="navbar">
@@ -46,11 +45,14 @@
         </div>
     </section>
 
+    <!-- Main Content -->
     <section class="hero">
         <div class="hero-body">
             <div class="container">
                 <div class="columns">
+
                     {% if current_user.is_authenticated %}
+                    <!-- Side Nav -->
                     <div class="column is-2">
                         <aside class="menu is-inline-block">
                             <p class="menu-label">
@@ -61,7 +63,7 @@
                                 <li><a href="{{ url_for('auth.account') }}">Account</a></li>
                             </ul>
                             <p class="menu-label">
-                                Hosts
+                                Configure
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
@@ -71,10 +73,10 @@
                                 Polling
                             </p>
                             <ul class="menu-list">
-                                <li><a href="{{ url_for('main.poll_interval') }}">Change Poll Interval</a></li>
+                                <li><a href="{{ url_for('main.poll_interval') }}">Polling Interval</a></li>
                             </ul>
                             <p class="menu-label">
-                                Alerts
+                                Notifications
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
@@ -91,6 +93,8 @@
                         </aside>
                     </div>
                     {% endif %}
+
+                    <!-- Block Content -->
                     <div class="column">
                         {% block content %}
                         {% endblock %}

@@ -3,6 +3,8 @@ import os
 import sys
 import flask_login
 import smtplib
+import email.utils
+import socket
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db
@@ -53,7 +55,7 @@ def smtp_test():
         # message = 'IP Monitoring SMTP Test'
 
         try:
-            _send_smtp_message(results['recipient'], subject, message)
+            _send_smtp_message_local(results['recipient'], subject, message)
             flash('Successfully sent SMTP test', 'success')
         except Exception as exc:
             flash('Failed to send SMTP test: {}'.format(exc), 'danger')
@@ -87,3 +89,20 @@ def _send_smtp_message(recipient, subject, message):
     # Send message
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())
     server.quit()
+
+
+def _send_smtp_message_local(recipient, subject, message):
+    # Create the message
+    hostname = socket.getfqdn()
+    print(hostname)
+    msg = MIMEText(message)
+    msg['To'] = email.utils.formataddr(('Recipient', recipient))
+    msg['From'] = email.utils.formataddr(('Author', 'ipmon@localhost.com'))
+    msg['Subject'] = subject
+
+    server = smtplib.SMTP('127.0.0.1', 1025)
+    server.set_debuglevel(True) # show communication with the server
+    try:
+        server.sendmail('ipmon@localhost.com', [recipient], msg.as_string())
+    finally:
+        server.quit()

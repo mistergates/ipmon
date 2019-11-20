@@ -9,6 +9,7 @@ import json
 import socket
 import re
 
+from werkzeug.exceptions import HTTPException
 from multiprocessing.pool import ThreadPool
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
@@ -29,18 +30,11 @@ def index():
     num_up = Hosts.query.filter(Hosts.status == 'Up').count()
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
     hosts = HOSTS_SCHEMA.dump(Hosts.query.all())
-    poll_time = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
-    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_time=poll_time)
-
-
-@main.route('/pollInterval')
-def poll_interval():
-    '''Poll Interval'''
-    return render_template('pollingInterval.html')
+    poll_interval = int(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']) * 1000
+    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_interval=poll_interval)
 
 
 @main.route('/pollHosts', methods=['GET'])
-@flask_login.login_required
 def poll_hosts():
     '''Polls hosts threaded and commits results to DB'''
     if request.method == 'GET':
@@ -57,6 +51,34 @@ def poll_hosts():
 
         db.session.commit()
     return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
+
+
+@main.route('/pollInterval', methods=['GET', 'POST'])
+@flask_login.login_required
+def poll_interval():
+    '''Poll Interval'''
+    if request.method == 'GET':
+        poll_interval = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
+        return render_template('pollingInterval.html', poll_interval=poll_interval)
+    elif request.method == 'POST':
+        results = request.form.to_dict()
+
+        try:
+            polling_interval = int(results['polling_interval'])
+        except ValueError:
+            flash('Must provide an integer!', 'danger')
+            return redirect(url_for('main.poll_interval'))
+
+        polling_config = Polling.query.filter_by(id=1).first()
+        try:
+            polling_config.poll_interval = polling_interval
+        except Exception:
+            flash('Failed to update polling interval', 'danger')
+            return redirect(url_for('main.poll_interval'))
+
+        db.session.commit()
+        flash('Successfully updated polling interval', 'success')
+        return redirect(url_for('main.poll_interval'))
 
 
 @main.route('/addHosts', methods=['GET', 'POST'])
@@ -125,8 +147,6 @@ def delete_hosts():
 
         db.session.commit()
         return redirect(url_for('main.delete_hosts'))
-
-
 
 #####################
 # Private Functions #
