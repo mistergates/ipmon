@@ -4,7 +4,9 @@ Monitor IP addresses by polling them via ICMP (ping) requests.
 
 A web app is made available using Flask to view IP address statuses and poll history.
 
-Polling runs as a service as part of the webb app.
+Polling runs as a service as part of the web app.
+
+A SQLite DB is used for storing hosts, polling results, user accounts, etc.
 
 
 
