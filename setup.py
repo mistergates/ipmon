@@ -117,7 +117,7 @@ if __name__ == '__main__':
         create_database()
         create_admin_user_interactive()
         set_poll_interval_interactive()
-        configure_smtp_server_interactive()
+        # configure_smtp_server_interactive()
     except (Exception, KeyboardInterrupt) as exc:
         failure_cleanup(exc)
         sys.exit(1)
