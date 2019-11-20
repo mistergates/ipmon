@@ -33,7 +33,7 @@ python setup.py
 
 ***Note:*** You will configure an admin account during setup, this account will need to be used for full functionality. By default, unauthenticated visitors will only be able to view IP statuses.
 
-## Running Web Server
+# Running Web Server
 To run the web server the most basic (lazy) way, you can run the following from the main directory of this repo:
 ```
 python webapp\webserv.py
