@@ -12,9 +12,7 @@ Polling runs as a service as part of the webb app.
 The following setups will need to be performed in order for setup:
 
 ## 1) Install Python
-Python 3.0+ needs to be installed, you can find installers here:
-
-[https://www.python.org/downloads/](https://www.python.org/downloads/)
+Python 3.0+ needs to be installed, you can find installers [here](https://www.python.org/downloads/)
 
 
 ## 2) Install Python Requirements
