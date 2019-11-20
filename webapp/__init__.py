@@ -2,9 +2,22 @@
 import os
 import flask_login
 
+
+from werkzeug.exceptions import HTTPException
+
 from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask
+from flask import Flask, render_template
+
+def handle_error(error):
+    '''Global Error Handler'''
+    code = 500
+    desc = 'Internal Server Error'
+    if isinstance(error, HTTPException):
+        code = error.code
+        desc = error.description
+    return render_template('error.html', code=code, desc=desc)
+
 
 config = {
     'Database_Name': 'sqlite.db'
@@ -30,3 +43,7 @@ scheduler.start()
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
+# Register error handling
+for cls in HTTPException.__subclasses__():
+    app.register_error_handler(cls, handle_error)

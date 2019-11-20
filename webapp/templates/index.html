@@ -2,62 +2,40 @@
 
 {% block content %}
 
-  <div class="container has-text-centered">
-    <nav class="level">
-      <div class="level-item">
-        <div>
-          <p class="heading">Total Hosts</p>
-          <p class="title has-text-primary">{{ num_hosts }}</p>
-        </div>
+<div class="container has-text-centered">
+  <nav class="level">
+    <div class="level-item">
+      <div>
+        <p class="heading">Total Hosts</p>
+        <p class="title has-text-primary" id="total-hosts"></p>
       </div>
-      <div class="level-item has-text-centered">
-        <div>
-          <p class="heading">Available Hosts</p>
-          <p class="title has-text-success">{{ num_up }}</p>
-        </div>
+    </div>
+    <div class="level-item has-text-centered">
+      <div>
+        <p class="heading">Available Hosts</p>
+        <p class="title has-text-success" id="available-hosts"></p>
       </div>
-      <div class="level-item has-text-centered">
-        <div>
-          <p class="heading">Unavailable Hosts</p>
-          <p class="title has-text-danger">{{ num_down }}</p>
-        </div>
+    </div>
+    <div class="level-item has-text-centered">
+      <div>
+        <p class="heading">Unavailable Hosts</p>
+        <p class="title has-text-danger" id="unavailable-hosts"></p>
       </div>
-    </nav>
-  </div>
+    </div>
+  </nav>
+</div>
 
-  <div class="container has-text-centered">
-    <table class="table is-fullwidth is-hoverable is-striped" id="ip_status">
-      <thead>
-        <tr>
-          <th>Hostname</th>
-          <th>IP Address</th>
-          <th>Last Poll</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for host in hosts %}
-        <tr>
-          <td>{{ host['hostname'] }}</td>
-          <td>{{ host['ip_address'] }}</td>
-          <td>{{ host['last_poll'] }}</td>
-          {% if host['status'] == 'Up' %}
-          <td class="has-text-success"><i class="fas fa-arrow-circle-up"></i></td>
-          {% else %}
-          <td class="has-text-danger"><i class="fas fa-arrow-circle-down"></i></td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="container has-text-centered">
+  <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
+    <!-- Data Table -->
+  </table>
+</div>
 
 
-<!-- Poll Hosts -->
 <script>
+  // Update Datatable - Called on interval
   async function updateTable() {
     await $.ajax({
-      // url: '/pollHosts',
       url: '/getHosts',
       type: 'GET',
       success: function (response) {
@@ -72,39 +50,87 @@
           "data": json_data
         }
 
-        if ($.fn.DataTable.isDataTable('#ip_status')) {
-          $('#ip_status').DataTable().destroy();
+        if ($.fn.DataTable.isDataTable('#ip-status')) {
+          $('#ip-status').DataTable().destroy();
         }
 
-        var table = $('#ip_status').DataTable({
+        var table = $('#ip-status').DataTable({
           data: json.data,
           columns: json.columns,
           paging: false,
           stateSave: true,
           'rowCallback': function (row, data, index) {
-            var this_row = $(row).find('td:eq(3)')
-            this_row.empty();
+            var status_col = $(row).find('td:eq(3)')
+            var last_poll_col = $(row).find('td:eq(2)')
+
+            // Change status row to use up/down circles and status colors
+            status_col.empty();
             if (data['status'] == 'Down') {
-              this_row.addClass("has-text-danger");
-              this_row.append('<i class="fas fa-arrow-circle-down"></i>');
+              status_col.addClass("has-text-danger");
+              status_col.append('<i class="fas fa-arrow-circle-down"></i>');
             } else {
-              this_row.addClass("has-text-success");
-              this_row.append('<i class="fas fa-arrow-circle-up"></i>');
+              status_col.addClass("has-text-success");
+              status_col.append('<i class="fas fa-arrow-circle-up"></i>');
             }
+
+            // Add link to last poll and event listener for loading history in modal
+            last_poll_col.wrapInner('<a>');
+            last_poll_col.click(function () {
+              load_poll_history(data['hostname'], data['id']);
+            });
           }
         })
       }
     });
   }
 
+  async function updateHostCounts() {
+    await $.ajax({
+      url: '/getHostCounts',
+      type: 'GET',
+      success: function (response) {
+        var json_data = JSON.parse(response)
+        $("#total-hosts").text(json_data['total_hosts'])
+        $("#available-hosts").text(json_data['available_hosts'])
+        $("#unavailable-hosts").text(json_data['unavailable_hosts'])
+      }
+    })
+  }
+
+  // Load Polling History for Host
+  async function load_poll_history(hostname, id) {
+    var modal_title = hostname + ' - Poll History'
+    await clear_modal();
+    await add_modal_content(modal_title, '<div class="container has-text-centered"><table id="modal-table" class="table is-fullwidth is-hoverable is-striped"></table></div>');
+    await $.ajax({
+      url: '/getPollHistory/' + id,
+      type: 'GET',
+      success: function (response) {
+        var json_data = JSON.parse(response)
+        var json = {
+          "columns": [
+            { "data": "poll_time", "title": "Poll Time" },
+            { "data": "poll_status", "title": "Poll Status" },
+          ],
+          "data": json_data
+        }
+        $('#modal-table').DataTable({
+          data: json.data,
+          columns: json.columns,
+          paging: true
+        });
+      }
+    });
+    await show_modal();
+  }
+
   // Show progress bar until datatable loads
   // Update datatable at interval of {{ poll_interval }} seconds
   $(document).ready(function () {
-    $('#ip_status').DataTable({
-      paging: false,
-      stateSave: true
-    });
+    updateTable();
+    updateHostCounts();
     setInterval(updateTable, {{ poll_interval }});
+    setInterval(updateHostCounts, {{ poll_interval }});
   });
 
 </script>

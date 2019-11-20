@@ -8,9 +8,10 @@ import re
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp.database import Hosts, Polling, HOSTS_SCHEMA, POLLING_SCHEMA
+from webapp.database import Hosts, Polling, PollHistory
+from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA
 from webapp import db, scheduler
-
+from webapp.host_polling import poll_host, update_poll_scheduler
 
 main = Blueprint('main', __name__)
 
@@ -20,12 +21,8 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     '''Index page'''
-    num_hosts = Hosts.query.count()
-    num_up = Hosts.query.filter(Hosts.status == 'Up').count()
-    num_down = Hosts.query.filter(Hosts.status == 'Down').count()
-    hosts = HOSTS_SCHEMA.dump(Hosts.query.all())
     interval = int(json.loads(get_polling_interval())['poll_interval']) * 1000
-    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_interval=interval)
+    return render_template('index.html', poll_interval=interval)
 
 
 @main.route('/getHosts', methods=['GET'])
@@ -36,6 +33,20 @@ def get_hosts():
 @main.route('/getPollingInterval', methods=['GET'])
 def get_polling_interval():
     return json.dumps(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
+
+
+@main.route('/getPollHistory/<host_id>', methods=['GET'])
+def get_poll_history(host_id):
+    return json.dumps(POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
+
+
+@main.route('/getHostCounts', methods=['GET'])
+def get_host_counts():
+    total = Hosts.query.count()
+    num_up = Hosts.query.filter(Hosts.status == 'Up').count()
+    num_down = Hosts.query.filter(Hosts.status == 'Down').count()
+
+    return json.dumps({'total_hosts': total, 'available_hosts': num_up, 'unavailable_hosts': num_down})
 
 
 @main.route('/configurePolling', methods=['GET', 'POST'])
@@ -64,8 +75,7 @@ def configure_polling():
         db.session.commit()
 
         # Update scheduled polling interval
-        sched = scheduler.scheduler # it returns the native apscheduler instance
-        sched.reschedule_job('Poll Hosts', trigger='interval', seconds=polling_interval)
+        update_poll_scheduler(polling_interval)
 
         flash('Successfully updated polling interval', 'success')
         return redirect(url_for('main.configure_polling'))
@@ -96,7 +106,7 @@ def add_hosts():
                 flash('IP Address {} already exists.'.format(ip_address), 'danger')
                 continue
 
-            status, current_time, hostname = _poll_host(ip_address)
+            status, current_time, hostname = poll_host(ip_address)
 
             # create new host database object
             new_host = Hosts(

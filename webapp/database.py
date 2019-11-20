@@ -33,6 +33,7 @@ class Hosts(db.Model):
     hostname = db.Column(db.String(length=100))
     status = db.Column(db.String(length=10))
     last_poll = db.Column(db.String(length=20))
+    poll_history = db.relationship("PollHistory")
 
 
 class PollHistory(db.Model):
@@ -125,7 +126,7 @@ class SmtpSchema(Schema):
 USER_SCHEMA = UserSchema()
 HOST_SCHEMA = HostsSchema()
 HOSTS_SCHEMA = HostsSchema(many=True)
-POLL_HISTORY_SCHEMA = HostsSchema(many=True)
+POLL_HISTORY_SCHEMA = PollHistorySchema(many=True)
 POLLING_SCHEMA = PollingSchema()
 ALERT_SCHEMA = AlertsSchema()
 ALERTS_SCHEMA = AlertsSchema(many=True)

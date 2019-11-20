@@ -7,6 +7,8 @@
     <script type="text/javascript" src="/static/javascript/jquery.js"></script>
     <script type="text/javascript" src="/static/javascript/datatables.js"></script>
     <script type="text/javascript" defer src="/static/fontawesome/js/all.js"></script>
+
+    <title>IPMON</title>
 </head>
 
 <body>
@@ -17,7 +19,7 @@
                 <div class="container">
                     <div class="navbar-brand">
                         <a href="{{ url_for('main.index') }}" class="navbar-item is-size-3 has-text-white">
-                            IP Monitoring&nbsp;&nbsp;&nbsp;<i class="fas fa-network-wired has-text-success"></i>
+                            IPMON&nbsp;<i class="fas fa-network-wired has-text-success"></i>
                         </a>
                         <span class="navbar-burger burger" data-target="navbarMenuHeroA">
                             <span></span>
@@ -67,7 +69,7 @@
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
-                                <li><a href="{{ url_for('main.delete_hosts') }}">Remove Hosts</a></li>
+                                <li><a href="{{ url_for('main.delete_hosts') }}">Delete Hosts</a></li>
                             </ul>
                             <p class="menu-label">
                                 Polling
@@ -75,21 +77,21 @@
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.configure_polling') }}">Polling Interval</a></li>
                             </ul>
-                            <p class="menu-label">
+                            <!-- <p class="menu-label">
                                 Notifications
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
                                 <li><a>Add Recipients</a></li>
                                 <li><a>Remove Recipients</a></li>
-                            </ul>
-                            <p class="menu-label">
+                            </ul> -->
+                            <!-- <p class="menu-label">
                                 Users
                             </p>
                             <ul class="menu-list">
                                 <li><a>Add User</a></li>
                                 <li><a>Remove User</a></li>
-                            </ul>
+                            </ul> -->
                         </aside>
                     </div>
                     {% endif %}
@@ -103,6 +105,25 @@
             </div>
         </div>
     </section>
+
+    <!-- Modal -->
+    <div class="modal" id="modal-container">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" id="modal-title">
+                    <!-- Title -->
+                </p>
+                <button class="delete" aria-label="close" id="close-modal"></button>
+            </header>
+            <section class="modal-card-body" id="modal-body">
+                <!-- Body -->
+            </section>
+            <footer class="modal-card-foot" id="modal-footer">
+                <!-- Footer -->
+            </footer>
+        </div>
+    </div>
 
 </body>
 
@@ -132,6 +153,29 @@
         }
 
     });
+
+    // Modal Controls
+    function clear_modal() {
+        $("#modal-title").empty()
+        $("#modal-body").empty()
+        $("#modal-footer").empty()
+    }
+
+    function show_modal() {
+        $("#modal-container").addClass('is-active');
+    }
+
+    function add_modal_content(title, body, footer) {
+        $("#modal-title").append(title);
+        $("#modal-body").append(body);
+        $("#modal-footer").append(footer);
+    }
+
+    $("#close-modal").click(function() {
+        $("#modal-container").removeClass('is-active');
+        clear_modal();
+    });
+
 </script>
 
 </html>
