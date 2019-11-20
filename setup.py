@@ -6,7 +6,7 @@ If the database already exists, this script will exit.
 import os
 import sys
 import getpass
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 try:
     from passlib.hash import sha256_crypt
@@ -32,7 +32,15 @@ def check_existing_database():
 def create_database():
     '''Creates the database with defined tables'''
     print('Creating the database and tables...')
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=True)
+    database_file = app.config['SQLALCHEMY_DATABASE_URI']
+    database_directory = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'webapp',
+        'database'
+    )
+    if not os.path.exists(database_directory):
+        os.makedirs(database_directory)
+    engine = create_engine(database_file, echo=True)
     db.Model.metadata.create_all(engine)
 
 

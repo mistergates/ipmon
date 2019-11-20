@@ -37,6 +37,8 @@ To run the web server the most basic (lazy) way, you can run the following from 
 python webapp\webserv.py
 ```
 
+By default, the web server will be running on ***http://127.0.0.1:80***
+
 ***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
 
 # TODO
