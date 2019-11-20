@@ -57,7 +57,8 @@
 <script>
   async function updateTable() {
     await $.ajax({
-      url: '/pollHosts',
+      // url: '/pollHosts',
+      url: '/getHosts',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)

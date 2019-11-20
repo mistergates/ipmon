@@ -35,6 +35,17 @@ class Hosts(db.Model):
     last_poll = db.Column(db.String(length=20))
 
 
+class PollHistory(db.Model):
+    '''Poll history for hosts'''
+    __tablename__ = 'pollHistory'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    host_id = db.Column(db.Integer, db.ForeignKey('hosts.id'))
+    poll_time = db.Column(db.String(length=20))
+    poll_status = db.Column(db.String(length=20))
+
+
 class Polling(db.Model):
     '''Polling Config'''
     __tablename__ = 'polling'
@@ -83,6 +94,13 @@ class HostsSchema(Schema):
         fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll')
 
 
+class PollHistorySchema(Schema):
+    '''Poll History Schema'''
+    class Meta:
+        '''Meta'''
+        fields = ('id', 'host_id', 'poll_time', 'poll_status')
+
+
 class PollingSchema(Schema):
     '''Polling Schema'''
     class Meta:
@@ -107,6 +125,7 @@ class SmtpSchema(Schema):
 USER_SCHEMA = UserSchema()
 HOST_SCHEMA = HostsSchema()
 HOSTS_SCHEMA = HostsSchema(many=True)
+POLL_HISTORY_SCHEMA = HostsSchema(many=True)
 POLLING_SCHEMA = PollingSchema()
 ALERT_SCHEMA = AlertsSchema()
 ALERTS_SCHEMA = AlertsSchema(many=True)

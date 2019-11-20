@@ -1,21 +1,15 @@
 '''Main Web Application'''
 import os
 import sys
-import time
 import flask_login
-import subprocess
-import platform
 import json
-import socket
 import re
 
-from werkzeug.exceptions import HTTPException
-from multiprocessing.pool import ThreadPool
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp.database import Hosts, Polling, HOSTS_SCHEMA, POLLING_SCHEMA
-from webapp import db
+from webapp import db, scheduler
 
 
 main = Blueprint('main', __name__)
@@ -30,36 +24,27 @@ def index():
     num_up = Hosts.query.filter(Hosts.status == 'Up').count()
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
     hosts = HOSTS_SCHEMA.dump(Hosts.query.all())
-    poll_interval = int(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']) * 1000
-    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_interval=poll_interval)
+    interval = int(json.loads(get_polling_interval())['poll_interval']) * 1000
+    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_interval=interval)
 
 
-@main.route('/pollHosts', methods=['GET'])
-def poll_hosts():
-    '''Polls hosts threaded and commits results to DB'''
-    if request.method == 'GET':
-        pool = ThreadPool(20)
-        threads = []
-        hosts = Hosts.query.all()
-        for host in hosts:
-            threads.append(pool.apply_async(_poll_host_threaded, (host,)))
-        pool.close()
-        pool.join()
-
-        for thread in threads:
-            thread.get()
-
-        db.session.commit()
+@main.route('/getHosts', methods=['GET'])
+def get_hosts():
     return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
 
 
-@main.route('/pollInterval', methods=['GET', 'POST'])
+@main.route('/getPollingInterval', methods=['GET'])
+def get_polling_interval():
+    return json.dumps(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
+
+
+@main.route('/configurePolling', methods=['GET', 'POST'])
 @flask_login.login_required
-def poll_interval():
+def configure_polling():
     '''Poll Interval'''
     if request.method == 'GET':
-        poll_interval = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
-        return render_template('pollingInterval.html', poll_interval=poll_interval)
+        interval = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
+        return render_template('pollingInterval.html', poll_interval=interval)
     elif request.method == 'POST':
         results = request.form.to_dict()
 
@@ -67,18 +52,23 @@ def poll_interval():
             polling_interval = int(results['polling_interval'])
         except ValueError:
             flash('Must provide an integer!', 'danger')
-            return redirect(url_for('main.poll_interval'))
+            return redirect(url_for('main.configure_polling'))
 
         polling_config = Polling.query.filter_by(id=1).first()
         try:
             polling_config.poll_interval = polling_interval
         except Exception:
             flash('Failed to update polling interval', 'danger')
-            return redirect(url_for('main.poll_interval'))
+            return redirect(url_for('main.configure_polling'))
 
         db.session.commit()
+
+        # Update scheduled polling interval
+        sched = scheduler.scheduler # it returns the native apscheduler instance
+        sched.reschedule_job('Poll Hosts', trigger='interval', seconds=polling_interval)
+
         flash('Successfully updated polling interval', 'success')
-        return redirect(url_for('main.poll_interval'))
+        return redirect(url_for('main.configure_polling'))
 
 
 @main.route('/addHosts', methods=['GET', 'POST'])
@@ -147,29 +137,3 @@ def delete_hosts():
 
         db.session.commit()
         return redirect(url_for('main.delete_hosts'))
-
-#####################
-# Private Functions #
-#####################
-def _poll_host_threaded(host):
-    status, poll_time, hostname = _poll_host(host.ip_address)
-    host.status = status
-    host.last_poll = poll_time
-    host.hostname = hostname
-
-
-def _poll_host(host):
-    param = '-n' if platform.system().lower() == 'windows' else '-c'
-    command = ['ping', param, '1', host]
-    response = subprocess.call(
-        command,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-
-    try:
-        hostname = socket.getfqdn(host)
-    except socket.error:
-        hostname = 'Unknown'
-
-    return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'), hostname)

@@ -4,3 +4,4 @@ flask-sqlalchemy
 sqlalchemy
 marshmallow
 passlib
+flask_apscheduler

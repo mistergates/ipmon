@@ -2,6 +2,7 @@
 import os
 import flask_login
 
+from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 
@@ -22,6 +23,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(config['Database_P
 
 db = SQLAlchemy()
 db.init_app(app)
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
