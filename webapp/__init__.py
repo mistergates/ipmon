@@ -25,7 +25,7 @@ config = {
 
 config['Database_Path'] =  os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    'db',
+    'database',
     config['Database_Name']
 )
 
