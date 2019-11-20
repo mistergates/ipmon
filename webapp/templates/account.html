@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="hero-body">
+    <div class="box has-text-centered">
+        <h3 class="title">Hello, <b>{{ current_user.id }}</b>!</h3>
+        <form action="{{ url_for('auth.logout') }}">
+            <button class="button is-danger is-large">Logout</button>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

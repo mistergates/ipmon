@@ -14,19 +14,19 @@
     {% endwith %}
 </div>
 
-<!-- Add Single Host -->
+
+<!-- Change Poll Interval -->
 <section class="hero-body">
+    <p class="title">Poll Interval</p>
     <div class="container">
-        <p class="title">Add Hosts</p>
-        <form method="POST" action="{{ url_for('main.add_hosts') }}">
+        <form method="POST" action="/pollInterval">
             <div class="field">
                 <div class="control">
-                    <textarea class="textarea is-large" rows="10" placeholder="IP Addresses" name="ip" autofocus="" required></textarea>
+                    <input class="input is-large" type="text" name="recipient" required>
                 </div>
-                <p class="help">One IP address per line</p>
             </div>
             <div class="control">
-                <button class="button is-info is-large">Add</button>
+                <button class="button is-block is-info is-large">Update</button>
             </div>
         </form>
     </div>

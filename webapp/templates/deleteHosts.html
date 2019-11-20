@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Notifications -->
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="notification is-{{category}} is-overlay">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Hosts Table -->
+<section class="hero-body">
+    <p class="title">Delete Hosts</p>
+    <div class="container has-text-centered">
+        <form method="POST" action="/deleteHosts">
+            <table class="table is-fullwidth is-hoverable is-striped" id="hosts">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Hostname</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in hosts %}
+                    <tr>
+                        <td>
+                            <label class="checkbox">
+                                <input type="checkbox" name="{{ host['id'] }} {{ host['hostname'] }}">
+                            </label>
+                        </td>
+                        <td>{{ host['hostname'] }}</td>
+                        <td>{{ host['ip_address'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="control">
+                <button class="button is-block is-danger is-large">Delete</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Load Datatable -->
+<script>
+    $(document).ready(function () {
+        $('#hosts').DataTable({
+            paging: false,
+            stateSave: true
+        })
+    });
+</script>
+
+{% endblock %}

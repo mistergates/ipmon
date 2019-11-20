@@ -6,14 +6,16 @@ import flask_login
 import subprocess
 import platform
 import json
+import socket
+import re
 
 from multiprocessing.pool import ThreadPool
-from flask import Blueprint, render_template, request, flash
-from sqlalchemy import update
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+from webapp.database import Hosts, Polling, HOSTS_SCHEMA, POLLING_SCHEMA
 from webapp import db
-from webapp.database import Hosts, HOSTS_SCHEMA
+
 
 main = Blueprint('main', __name__)
 
@@ -27,24 +29,37 @@ def index():
     num_up = Hosts.query.filter(Hosts.status == 'Up').count()
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
     hosts = HOSTS_SCHEMA.dump(Hosts.query.all())
-    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down)
+    poll_time = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
+    return render_template('index.html', hosts=hosts, num_hosts=num_hosts, num_up=num_up, num_down=num_down, poll_time=poll_time)
+
+
+@main.route('/pollInterval')
+def poll_interval():
+    '''Poll Interval'''
+    return render_template('pollingInterval.html')
 
 
 @main.route('/pollHosts', methods=['GET'])
+@flask_login.login_required
 def poll_hosts():
+    '''Polls hosts threaded and commits results to DB'''
     if request.method == 'GET':
+        pool = ThreadPool(20)
+        threads = []
         hosts = Hosts.query.all()
         for host in hosts:
-            status, current_time = _poll_host(host.ip_address)
-            update(Hosts).where(Hosts.id == host.id).values(
-                status=status,
-                last_poll=current_time
-            )
+            threads.append(pool.apply_async(_poll_host_threaded, (host,)))
+        pool.close()
+        pool.join()
+
+        for thread in threads:
+            thread.get()
+
         db.session.commit()
     return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
 
 
-@main.route('/addhosts', methods=['GET', 'POST'])
+@main.route('/addHosts', methods=['GET', 'POST'])
 @flask_login.login_required
 def add_hosts():
     '''Add Hosts Page'''
@@ -53,30 +68,75 @@ def add_hosts():
     elif request.method == 'POST':
         results = request.form.to_dict()
 
-        status, current_time = _poll_host(results['ip'])
+        for ip_address in results['ip'].split('\n'):
+            ip_address = ip_address.strip()
 
-        # create new host database object
-        new_host = Hosts(
-            ip_address=results['ip'],
-            hostname=results['hostname'],
-            status=status,
-            last_poll=current_time
-        )
+            regex = '''^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)'''
 
-        try:
-            # add the new host to the database
-            db.session.add(new_host)
-            db.session.commit()
-            flash('Successfully added {}'.format(results['hostname']))
-        except Exception as exc:
-            flash('Failed to add {}: {}'.format(results['hostname'], exc))
+            if not re.search(regex, ip_address):
+                flash('{} Is not a valid IP address'.format(ip_address), 'danger')
+                continue
 
-        return render_template('addHosts.html')
-        
+            if Hosts.query.filter_by(ip_address=ip_address).first():
+                flash('IP Address {} already exists.'.format(ip_address), 'danger')
+                continue
+
+            status, current_time, hostname = _poll_host(ip_address)
+
+            # create new host database object
+            new_host = Hosts(
+                ip_address=ip_address,
+                hostname=hostname,
+                status=status,
+                last_poll=current_time
+            )
+
+            try:
+                # add the new host to the database
+                db.session.add(new_host)
+                flash(u'Successfully added {} ({})'.format(ip_address, hostname), 'success')
+            except Exception:
+                flash(u'Failed to add {}'.format(hostname), 'danger')
+                continue
+
+        db.session.commit()
+        return redirect(url_for('main.add_hosts'))
+
+
+@main.route('/deleteHosts', methods=['GET', 'POST'])
+@flask_login.login_required
+def delete_hosts():
+    '''Delete Hosts Page'''
+    if request.method == 'GET':
+        return render_template('deleteHosts.html', hosts=HOSTS_SCHEMA.dump(Hosts.query.all()))
+    elif request.method == 'POST':
+        results = request.form.to_dict()
+        for host in results:
+            host_id, hostname = host.split()
+            try:
+                Hosts.query.filter_by(id=host_id).delete()
+                flash('Successfully deleted {}'.format(hostname), 'success')
+            except Exception as exc:
+                flash('Failed to delete {}: {}'.format(hostname, exc), 'danger')
+                continue
+
+        db.session.commit()
+        return redirect(url_for('main.delete_hosts'))
+
+
 
 #####################
 # Private Functions #
 #####################
+def _poll_host_threaded(host):
+    status, poll_time, hostname = _poll_host(host.ip_address)
+    host.status = status
+    host.last_poll = poll_time
+    host.hostname = hostname
+
 
 def _poll_host(host):
     param = '-n' if platform.system().lower() == 'windows' else '-c'
@@ -86,6 +146,10 @@ def _poll_host(host):
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
-    return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'))
 
+    try:
+        hostname = socket.getfqdn(host)
+    except socket.error:
+        hostname = 'Unknown'
 
+    return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'), hostname)

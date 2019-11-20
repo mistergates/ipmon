@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Notifications -->
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="notification is-{{category}} is-overlay">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Update SMTP Form -->
+<section class="hero-body">
+    <p class="title">SMTP Config</p>
+    <div class="container">
+        <form method="POST" action="/smtpConfig">
+            <div class="field">
+                <label class="label">Server</label>
+                <div class="control">
+                    <input class="input is-large" type="text" name="smtp_server" placeholder="{{ smtp['smtp_server'] }}"
+                        required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Port</label>
+                <div class="control">
+                    <input class="input is-large" type="text" name="smtp_port" placeholder="{{ smtp['smtp_port'] }}"
+                        required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Sender Address</label>
+                <div class="control">
+                    <input class="input is-large" type="email" name="smtp_sender"
+                        placeholder="{{ smtp['smtp_sender'] }}" required>
+                </div>
+            </div>
+
+            <!-- <div class="field">
+                <label class="label">SMTP Password</label>
+                <div class="control">
+                    <input class="input is-large" type="password" name="smtp_password">
+                </div>
+                <p class="help">If your SMTP server requires authentication, set the password for the from address here.
+                </p>
+            </div> -->
+            <div class="control">
+                <button class="button is-block is-info is-large">Update</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Test SMTP -->
+<section class="hero-body">
+    <p class="title">SMTP Test</p>
+    <div class="container">
+        <form method="POST" action="/smtpTest">
+            <div class="field">
+                <label class="label">Recipient Email Address</label>
+                <div class="control">
+                    <input class="input is-large" type="email" name="recipient" required>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-block is-info is-large">Send</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

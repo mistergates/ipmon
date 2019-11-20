@@ -3,15 +3,16 @@
 
 <head>
     <link rel="stylesheet" href="/static/css/bulma.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.js"></script>
+    <script type="text/javascript"
+        src="https://cdn.datatables.net/v/dt/dt-1.10.20/cr-1.5.2/fh-3.1.6/datatables.min.js"></script>
     <script defer src="/static/fontawesome/js/all.js"></script>
 </head>
 
 <body>
     <section class="hero is-primary is-medium">
-        <!-- Hero head: will stick at the top -->
         <div class="hero-head">
             <nav class="navbar">
                 <div class="container">
@@ -28,17 +29,9 @@
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-end">
                             {% if current_user.is_authenticated %}
-                            <div class="navbar-item has-dropdown is-hoverable">
-                                <a class="navbar-link">
-                                    {{current_user.id}}
-                                </a>
-
-                                <div class="navbar-dropdown">
-                                    <a href="{{ url_for('auth.logout') }}" class="navbar-item">
-                                        Log Out
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="{{ url_for('auth.account') }}" class="navbar-item">
+                                <i class="fas fa-user"></i>&nbsp;&nbsp;{{current_user.id}}
+                            </a>
                             {% else %}
                             <a href="{{ url_for('auth.login') }}" class="navbar-item">
                                 Log in
@@ -65,27 +58,35 @@
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                                <li><a href="{{ url_for('auth.account') }}">Account</a></li>
                             </ul>
                             <p class="menu-label">
-                                Manage Hosts
+                                Hosts
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
-                                <li><a>Remove Hosts</a></li>
+                                <li><a href="{{ url_for('main.delete_hosts') }}">Remove Hosts</a></li>
                             </ul>
                             <p class="menu-label">
                                 Polling
                             </p>
                             <ul class="menu-list">
-                                <li><a>Change Poll Time</a></li>
+                                <li><a href="{{ url_for('main.poll_interval') }}">Change Poll Interval</a></li>
                             </ul>
                             <p class="menu-label">
                                 Alerts
                             </p>
                             <ul class="menu-list">
-                                <li><a>Configure Alerts</a></li>
+                                <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
                                 <li><a>Add Recipients</a></li>
                                 <li><a>Remove Recipients</a></li>
+                            </ul>
+                            <p class="menu-label">
+                                Users
+                            </p>
+                            <ul class="menu-list">
+                                <li><a>Add User</a></li>
+                                <li><a>Remove User</a></li>
                             </ul>
                         </aside>
                     </div>

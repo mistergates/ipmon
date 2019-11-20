@@ -50,11 +50,11 @@ def verify_password(form):
 ##########################
 # Routes #################
 ##########################
-@auth.route("/signup")
-def signup():
-    '''User Registration'''
-    # return redirect(request.referrer)
-    return render_template('signup.html', refresh=True)
+@auth.route("/account")
+@flask_login.login_required
+def account():
+    '''User Account'''
+    return render_template('account.html')
 
 
 @auth.route("/logout")
@@ -63,7 +63,7 @@ def logout():
     '''Logout user'''
     flask_login.logout_user()
     # return redirect(request.referrer)
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -88,39 +88,47 @@ def login():
     return redirect(url_for('auth.login'))
 
 
-@auth.route('/signup', methods=['POST'])
-def signup_post():
+@auth.route('/addUser', methods=['GET', 'POST'])
+@flask_login.login_required
+def add_user():
 
-    email = request.form.get('email')
-    username = request.form.get('username')
-    password = request.form.get('password')
-    password_verify = request.form.get('verify_password')
-    errors = 0
+    if request.method == 'GET':
+        return render_template('addUser.html')
+    elif request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        password_verify = request.form.get('verify_password')
+        errors = 0
 
-    if password != password_verify:
-        # Verify passwords matched
-        flash('Passwords do not match')
-        errors += 1
-    if Users.query.filter_by(username=username).first():
-        # Check to see if username exists
-        flash('Username already exists')
-        errors += 1
-    if Users.query.filter_by(email=email).first():
-        # Check to see if email already exists
-        flash('Email address already exists')
-        errors += 1
+        if password != password_verify:
+            # Verify passwords matched
+            flash('Passwords do not match', 'danger')
+            errors += 1
+        if Users.query.filter_by(username=username).first():
+            # Check to see if username exists
+            flash('Username already exists', 'danger')
+            errors += 1
+        if Users.query.filter_by(email=email).first():
+            # Check to see if email already exists
+            flash('Email address already exists', 'danger')
+            errors += 1
 
-    if errors:
-        return redirect(url_for('auth.signup'))
+        if errors:
+            return redirect(url_for('auth.add_user'))
 
-    # create new user with the form data. Hash the password so plaintext version isn't saved.
-    new_user = Users(email=email, username=username, password=sha256_crypt.hash(password))
+        try:
+            # create new user with the form data. Hash the password so plaintext version isn't saved.
+            new_user = Users(email=email, username=username, password=sha256_crypt.hash(password))
 
-    # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
+            # add the new user to the database
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Succussfully added user {}'.format(new_user.username), 'success')
+        except Exception:
+            flash('Failed to add user', 'danger')
 
-    return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.add_user'))
 
 
 ##########################

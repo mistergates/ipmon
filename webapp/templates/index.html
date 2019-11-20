@@ -8,19 +8,19 @@
       <div class="level-item">
         <div>
           <p class="heading">Total Hosts</p>
-          <a class="title has-text-primary">{{ num_hosts }}</a>
+          <p class="title has-text-primary">{{ num_hosts }}</p>
         </div>
       </div>
       <div class="level-item has-text-centered">
         <div>
-          <p class="heading">Online Hosts</p>
-          <a class="title has-text-success">{{ num_up }}</a>
+          <p class="heading">Available Hosts</p>
+          <p class="title has-text-success">{{ num_up }}</p>
         </div>
       </div>
       <div class="level-item has-text-centered">
         <div>
-          <p class="heading">Offline Hosts</p>
-          <a class="title has-text-danger">{{ num_down }}</a>
+          <p class="heading">Unavailable Hosts</p>
+          <p class="title has-text-danger">{{ num_down }}</p>
         </div>
       </div>
     </nav>
@@ -29,92 +29,63 @@
 
 <section class="hero-body">
   <div class="container has-text-centered">
+    <progress class="progress is-large is-info" max="100" id="progress">50%</progress>
     <table class="table is-fullwidth is-hoverable is-striped" id="ip_status">
-      <thead>
-        <tr>
-          <th>IP Address</th>
-          <th>Hostname</th>
-          <th>Last Poll</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for host in hosts %}
-        <tr>
-          <td>{{ host['ip_address'] }}</td>
-          <td>{{ host['hostname'] }}</td>
-          <td>{{ host['last_poll'] }}</td>
-          {% if host['status'] == 'Up' %}
-          <td class="has-text-success">{{ host['status'] }}</td>
-          {% else %}
-          <td class="has-text-danger">{{ host['status'] }}</td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
+      <!-- Datatable Generated Here -->
     </table>
   </div>
 </section>
 
 <!-- Poll Hosts -->
 <script>
-  function updateTable() {
-    $.ajax({
+  async function updateTable() {
+    await $.ajax({
       url: '/pollHosts',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
-        // https://stackoverflow.com/questions/33682122/datatables-generate-whole-table-from-json
         var json = {
           "columns": [
-            {"data": "hostname", "title": "Hostname"},
-            {"data": "ip_address", "title": "IP Address"},
-            {"data": "last_poll", "title": "Last Poll"},
-            {"data": "status", "title": "Status"}
+            { "data": "hostname", "title": "Hostname" },
+            { "data": "ip_address", "title": "IP Address" },
+            { "data": "last_poll", "title": "Last Poll" },
+            { "data": "status", "title": "Status" }
           ],
           "data": json_data
         }
 
+        if ($.fn.DataTable.isDataTable('#ip_status')) {
+          $('#ip_status').DataTable().destroy();
+        }
+
         var table = $('#ip_status').DataTable({
-          data : json.data,
-          columns : json.columns
+          data: json.data,
+          columns: json.columns,
+          paging: false,
+          stateSave: true,
+          'rowCallback': function (row, data, index) {
+            var this_row = $(row).find('td:eq(3)')
+            this_row.empty();
+            if (data['status'] == 'Down') {
+              this_row.addClass("has-text-danger");
+              this_row.append('<i class="fas fa-arrow-circle-down"></i>');
+            } else {
+              this_row.addClass("has-text-success");
+              this_row.append('<i class="fas fa-arrow-circle-up"></i>');
+            }
+          }
         })
-        // table.clear();
-        table.draw();
       }
     });
   }
 
-  $(document).ready(function () {
-    setInterval(updateTable, 5000);
+  // Show progress bar until datatable loads
+  // Update datatable at interval of {{ poll_time }} seconds
+  $(document).ready(async function () {
+    await updateTable();
+    await $("#progress").hide();
+    setInterval(updateTable, {{ poll_time }});
   });
-
-// var table = $('#ip_status').DataTable();
-
-// function update_table() {
-//     $.ajax({
-//       url: '/pollHosts',
-//       type: 'get',
-//       success: function (response) {
-//         var data = JSON.parse(response)
-//         console.log(data)
-//         var table = $('#ip_status').DataTable();
-//         table.clear();
-//         table.rows.add(
-//           data['ip_address'],
-//           data['hostname'],
-//           data['last_poll'],
-//           data['status']
-//         ).draw();
-//       }
-//   });
-// }
-
-// setInterval( function () {
-//     update_table();
-//     // table.ajax.reload( null, false ); // user paging is not reset on reload
-// }, 5000 );
-
 
 </script>
 
