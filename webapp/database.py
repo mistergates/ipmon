@@ -75,7 +75,6 @@ class SmtpServer(db.Model):
     smtp_server = db.Column(db.String(length=100), nullable=False)
     smtp_port = db.Column(db.Integer, nullable=False)
     smtp_sender = db.Column(db.String(length=100), nullable=False)
-    # smtp_password = db.Column(db.String(length=200))
 
 
 ##########################

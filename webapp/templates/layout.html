@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="/static/css/bulma.css">
+    <link rel="stylesheet" href="/static/css/bulmaswatch.min.css">
     <link rel="stylesheet" type="text/css" href="/static/css/datatables.css" />
     <script type="text/javascript" src="/static/javascript/jquery.js"></script>
     <script type="text/javascript" src="/static/javascript/datatables.js"></script>
@@ -21,8 +21,9 @@
             height: 100vh;
             left: 0;
             top: 0;
-            background: rgba(51, 51, 51, 0.9);
-            z-index: 999;
+            background: #fff;
+            z-index: 30;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -93,14 +94,14 @@
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.configure_polling') }}">Polling Interval</a></li>
                             </ul>
-                            <!-- <p class="menu-label">
+                            <p class="menu-label">
                                 Notifications
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
                                 <li><a>Add Recipients</a></li>
                                 <li><a>Remove Recipients</a></li>
-                            </ul> -->
+                            </ul>
                             <!-- <p class="menu-label">
                                 Users
                             </p>

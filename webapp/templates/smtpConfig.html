@@ -70,7 +70,11 @@
                 </div>
             </div>
             <div class="control">
+                {% if smtp['smtp_server'] is defined %}
                 <button class="button is-block is-info is-medium">Send</button>
+                {% else %}
+                <button class="button is-block is-info is-medium" disabled>Send</button>
+                {% endif %}
             </div>
         </form>
     </div>

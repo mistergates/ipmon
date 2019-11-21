@@ -26,16 +26,14 @@
 </div>
 
 <section class="hero-body" id="expand-me">
-  <div class="container">
-    <button class="button is-small is-outlined is-pulled-right" id="expand">
-      <span class="icon is-small">
-        <i class="fa fa-expand-arrows-alt" id="expander"></i>
-      </span>
-    </button>
-    <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
-      <!-- Data Table -->
-    </table>
-  </div>
+  <button class="button is-small is-outlined is-pulled-right" id="expand">
+    <span class="icon is-small">
+      <i class="fa fa-expand-arrows-alt" id="expander"></i>
+    </span>
+  </button>
+  <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
+    <!-- Data Table -->
+  </table>
 </section>
 
 <script>
@@ -82,10 +80,8 @@
             }
 
             // Add link to last poll and event listener for loading poll history in modal
-            last_poll_col.append('<span class="icon"><i class="fa fa-history"></i></span>')
-            last_poll_col.click(function () {
-              load_poll_history(data['hostname'], data['id']);
-            });
+            var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
+            last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick +'><i class="fa fa-history"></i></span>')
           }
         })
       }
@@ -106,7 +102,7 @@
   }
 
   // Load Polling History for Host
-  async function load_poll_history(hostname, id) {
+  async function loadPollHistory(hostname, id) {
     await clear_modal();
     await add_modal_content(hostname, '<div class="table-container"><table class="table is-fullwidth is-hoverable is-striped" id="modal-table" ></table></div>', 'Poll History');
     await $.ajax({

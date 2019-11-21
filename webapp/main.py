@@ -140,6 +140,7 @@ def delete_hosts():
             host_id, hostname = host.split()
             try:
                 Hosts.query.filter_by(id=host_id).delete()
+                PollHistory.query.filter_by(host_id=host_id).delete()
                 flash('Successfully deleted {}'.format(hostname), 'success')
             except Exception as exc:
                 flash('Failed to delete {}: {}'.format(hostname, exc), 'danger')
