@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import atexit
+import argparse
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import app, scheduler
@@ -12,6 +13,11 @@ from webapp.main import main as main_blueprint
 from webapp.auth import auth as auth_blueprint
 from webapp.smtp import smtp as smtp_blueprint
 
+parser = argparse.ArgumentParser(description='Web Server Arguments')
+parser.add_argument('--host', type=str, default='127.0.0.1', help="Binds the server to this hostname/IP address")
+parser.add_argument('--port', type=int, default=80, help="Binds the server to this port")
+parser.add_argument('--debug', action="store_true", default=False, help="Runs the server in debug mode")
+args = parser.parse_args()
 
 if __name__ == '__main__':
     # Register blueprints
@@ -30,4 +36,4 @@ if __name__ == '__main__':
     atexit.register(lambda: scheduler.shutdown())
 
     # Run Server
-    app.run(port=80, debug=True)
+    app.run(host=args.host, port=args.port, debug=args.debug)
