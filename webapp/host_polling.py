@@ -66,5 +66,9 @@ def poll_host(host):
 
 
 def update_poll_scheduler(poll_interval):
-    scheduler.scheduler.remove_all_jobs()
+    # scheduler.scheduler.remove_all_jobs()
+    try:
+        scheduler.scheduler.remove_job('Poll Hosts')
+    except Exception:
+        pass
     scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=poll_interval, max_instances=1)

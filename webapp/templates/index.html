@@ -25,12 +25,13 @@
   </nav>
 </div>
 
-<div class="container has-text-centered">
-  <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
-    <!-- Data Table -->
-  </table>
-</div>
-
+<section class="hero-body">
+  <div class="container has-text-centered">
+    <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
+      <!-- Data Table -->
+    </table>
+  </div>
+</section>
 
 <script>
   // Update Datatable - Called on interval
@@ -101,7 +102,7 @@
   async function load_poll_history(hostname, id) {
     var modal_title = hostname + ' - Poll History'
     await clear_modal();
-    await add_modal_content(modal_title, '<div class="container has-text-centered"><table id="modal-table" class="table is-fullwidth is-hoverable is-striped"></table></div>');
+    await add_modal_content(modal_title, '<div class="table-container"><table class="table is-fullwidth is-hoverable is-striped" id="modal-table" ></table></div>');
     await $.ajax({
       url: '/getPollHistory/' + id,
       type: 'GET',
@@ -115,6 +116,7 @@
           "data": json_data
         }
         $('#modal-table').DataTable({
+          "order": [[0, "desc"]],
           data: json.data,
           columns: json.columns,
           paging: true

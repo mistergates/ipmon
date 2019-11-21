@@ -106,6 +106,24 @@
         </div>
     </section>
 
+    <!-- Footer -->
+    <footer class="footer is-fixed-bottom">
+        <div class="content has-text-centered">
+            <p>
+                <strong>IPMON</strong> by <a href="https://github.com/mistergates">Mitch Gates</a>. The source code is
+                licensed
+                <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+            </p>
+            <div class="buttons is-centered">
+                <button class="button is-medium">
+                    <span class="icon">
+                        <a href="https://github.com/mistergates/ipmon"><i class="fab fa-github"></i></a>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
     <!-- Modal -->
     <div class="modal" id="modal-container">
         <div class="modal-background"></div>
@@ -171,7 +189,7 @@
         $("#modal-footer").append(footer);
     }
 
-    $("#close-modal").click(function() {
+    $("#close-modal").click(function () {
         $("#modal-container").removeClass('is-active');
         clear_modal();
     });
