@@ -80,28 +80,11 @@ def set_poll_interval_interactive():
 
 def configure_smtp_server_interactive():
     '''Set the poll interval interactively'''
-    if 'y' in input('\nWould you like to connfigure a SMTP server for alerts? (y/n): ').strip().lower():
+    if 'y' in input('\nWould you like to connfigure a SMTP server for email alerts? (y/n): ').strip().lower():
 
-        while True:
-            smtp_server = input('  SMTP Server Address: ').strip()
-            smtp_port = int(input('  SMTP Port: '))
-            smtp_sender = input('  SMTP Sender Address: ').strip()
-
-            # Prompt for optional password
-            # while True:
-            #     smtp_password = getpass.getpass(prompt='  Password (Enter for none): ').strip()
-            #     if not smtp_password:
-            #         smtp_password = None
-            #         break
-            #     verify = getpass.getpass(prompt='  Re-enter Password: ').strip()
-
-            #     if smtp_password == verify:
-            #         break
-            #     else:
-            #         print('\n!! Passwords did not match !!\n')
-
-            # if 'y' in input('\n  Continue with the above information? (y/n): ').strip().lower():
-            #     break
+        smtp_server = input('  SMTP Server Address: ').strip()
+        smtp_port = int(input('  SMTP Port: '))
+        smtp_sender = input('  SMTP Sender Address: ').strip()
 
         with app.app_context():
             smtp = SmtpServer(smtp_server=smtp_server, smtp_port=smtp_port, smtp_sender=smtp_sender)
@@ -125,7 +108,7 @@ if __name__ == '__main__':
         create_database()
         create_admin_user_interactive()
         set_poll_interval_interactive()
-        # configure_smtp_server_interactive()
+        configure_smtp_server_interactive()
     except (Exception, KeyboardInterrupt) as exc:
         failure_cleanup(exc)
         sys.exit(1)

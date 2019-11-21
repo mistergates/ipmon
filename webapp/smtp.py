@@ -55,14 +55,14 @@ def smtp_test():
     '''Send SMTP test email'''
     if request.method == 'POST':
         results = request.form.to_dict()
-        subject = 'IPMON SMTP Test'
-        message = 'IPMON SMTP Test'
+        subject = 'IPMON SMTP Test Message'
+        message = 'IPMON SMTP Test Message'
 
         try:
             _send_smtp_message(results['recipient'], subject, message)
-            flash('Successfully sent SMTP test', 'success')
+            flash('Successfully sent SMTP test message', 'success')
         except Exception as exc:
-            flash('Failed to send SMTP test: {}'.format(exc), 'danger')
+            flash('Failed to send SMTP test message: {}'.format(exc), 'danger')
 
     return redirect(url_for('smtp.smtp_config'))
 
@@ -84,11 +84,7 @@ def _send_smtp_message(recipient, subject, message):
 
     # Send ehlo
     server.ehlo()
-    # server.set_debuglevel(False)
-
-    # Login if password was provided
-    if current_smtp['smtp_password']:
-        server.login(current_smtp['smtp_sender'], current_smtp['smtp_password'])
+    server.set_debuglevel(False)
 
     # Send message
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())

@@ -21,6 +21,7 @@ class Users(db.Model):
     email = db.Column(db.String(length=50), nullable=False, unique=True)
     password = db.Column(db.String(length=200), nullable=False)
     date_created = db.Column(db.Date, default=datetime.now())
+    alerts_enabled = db.Column(db.Boolean, default=True)
 
 
 class Hosts(db.Model):
@@ -33,6 +34,7 @@ class Hosts(db.Model):
     hostname = db.Column(db.String(length=100))
     status = db.Column(db.String(length=10))
     last_poll = db.Column(db.String(length=20))
+    previous_status = db.Column(db.String(length=10))
     poll_history = db.relationship("PollHistory")
 
 
@@ -56,16 +58,6 @@ class Polling(db.Model):
     poll_interval = db.Column(db.Integer, nullable=False)
 
 
-class Alerts(db.Model):
-    '''Alerts'''
-    __tablename__ = 'alerts'
-    __table_args__ = {'extend_existing': True}
-
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(length=50), nullable=False, unique=True)
-    enabled = db.Column(db.Boolean, default=False)
-
-
 class SmtpServer(db.Model):
     '''SMTP Server'''
     __tablename__ = 'smtp'
@@ -84,7 +76,7 @@ class UserSchema(Schema):
     '''Users schema'''
     class Meta:
         '''Metadata'''
-        fields = ('id', 'username', 'password', 'email', 'date_created')
+        fields = ('id', 'username', 'password', 'email', 'date_created', 'alerts_enabled')
 
 
 class HostsSchema(Schema):
@@ -127,6 +119,4 @@ HOST_SCHEMA = HostsSchema()
 HOSTS_SCHEMA = HostsSchema(many=True)
 POLL_HISTORY_SCHEMA = PollHistorySchema(many=True)
 POLLING_SCHEMA = PollingSchema()
-ALERT_SCHEMA = AlertsSchema()
-ALERTS_SCHEMA = AlertsSchema(many=True)
 SMTP_SCHEMA = SmtpSchema()
