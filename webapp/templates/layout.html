@@ -9,6 +9,22 @@
     <script type="text/javascript" defer src="/static/fontawesome/js/all.js"></script>
 
     <title>IPMON</title>
+
+    <style>
+        table {
+            width: 100% !important;
+        }
+
+        .fullscreen {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            background: rgba(51, 51, 51, 0.9);
+            z-index: 999;
+        }
+    </style>
 </head>
 
 <body>
@@ -110,16 +126,17 @@
     <footer class="footer is-fixed-bottom">
         <div class="content has-text-centered">
             <p>
-                <strong>IPMON</strong> by <a href="https://github.com/mistergates">Mitch Gates</a>. The source code is
-                licensed
-                <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+                <strong>IPMON</strong> by <a href="https://github.com/mistergates">Mitch Gates</a>.&nbsp;
+                Source code is licensed <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
             </p>
             <div class="buttons is-centered">
-                <button class="button is-medium">
-                    <span class="icon">
-                        <a href="https://github.com/mistergates/ipmon"><i class="fab fa-github"></i></a>
-                    </span>
-                </button>
+                <a href="https://github.com/mistergates/ipmon" target="_blank">
+                    <button class="button is-medium is-outlined">
+                        <span class="icon">
+                            <i class="fab fa-github"></i>
+                        </span>
+                    </button>
+                </a>
             </div>
         </div>
     </footer>
