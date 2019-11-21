@@ -30,15 +30,21 @@ def smtp_config():
         results = request.form.to_dict()
         try:
             smtp_conf = SmtpServer.query.filter_by(id='1').first()
-            smtp_conf.smtp_server = results['smtp_server']
-            smtp_conf.smtp_port = results['smtp_port']
-            smtp_conf.smtp_sender = results['smtp_sender']
-            # if results['smtp_password']:
-            #     smtp_conf.smtp_password = sha256_crypt.hash(results['smtp_password'])
+            if not smtp_conf:
+                smtp_conf = SmtpServer(
+                    smtp_server=results['smtp_server'],
+                    smtp_port=results['smtp_port'],
+                    smtp_sender=results['smtp_sender']
+                )
+                db.session.add(smtp_conf)
+            else:
+                smtp_conf.smtp_server = results['smtp_server']
+                smtp_conf.smtp_port = results['smtp_port']
+                smtp_conf.smtp_sender = results['smtp_sender']
             db.session.commit()
             flash('Successfully updated SMTP configuration', 'success')
-        except Exception:
-            flash('Failed to update SMTP configuration', 'danger')
+        except Exception as exc:
+            flash('Failed to update SMTP configuration: {}'.format(exc), 'danger')
 
         return redirect(url_for('smtp.smtp_config'))
 
@@ -49,15 +55,14 @@ def smtp_test():
     '''Send SMTP test email'''
     if request.method == 'POST':
         results = request.form.to_dict()
-        subject = 'IP Monitoring SMTP Test'
-        message = 'IP Monitoring SMTP Test'
-        # message = 'IP Monitoring SMTP Test'
+        subject = 'IPMON SMTP Test Message'
+        message = 'IPMON SMTP Test Message'
 
         try:
             _send_smtp_message(results['recipient'], subject, message)
-            flash('Successfully sent SMTP test', 'success')
+            flash('Successfully sent SMTP test message', 'success')
         except Exception as exc:
-            flash('Failed to send SMTP test: {}'.format(exc), 'danger')
+            flash('Failed to send SMTP test message: {}'.format(exc), 'danger')
 
     return redirect(url_for('smtp.smtp_config'))
 
@@ -72,18 +77,14 @@ def _send_smtp_message(recipient, subject, message):
     msg['Subject'] = subject
     msg['From'] = current_smtp['smtp_sender']
 
-    server = smtplib.SMTP(current_smtp['smtp_server'], current_smtp['smtp_port'])
+    server = smtplib.SMTP(current_smtp['smtp_server'], current_smtp['smtp_port'], timeout=10)
 
     # Secure the connection
     server.starttls()
 
     # Send ehlo
     server.ehlo()
-    # server.set_debuglevel(False)
-
-    # Login if password was provided
-    if current_smtp['smtp_password']:
-        server.login(current_smtp['smtp_sender'], current_smtp['smtp_password'])
+    server.set_debuglevel(False)
 
     # Send message
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())

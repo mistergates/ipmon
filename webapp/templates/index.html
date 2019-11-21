@@ -25,12 +25,16 @@
   </nav>
 </div>
 
-<div class="container has-text-centered">
+<section class="hero-body" id="expand-me">
+  <button class="button is-small is-outlined is-pulled-right" id="expand">
+    <span class="icon is-small">
+      <i class="fa fa-expand-arrows-alt" id="expander"></i>
+    </span>
+  </button>
   <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
     <!-- Data Table -->
   </table>
-</div>
-
+</section>
 
 <script>
   // Update Datatable - Called on interval
@@ -55,29 +59,29 @@
         }
 
         var table = $('#ip-status').DataTable({
+          "order": [[3, "asc"]],
           data: json.data,
           columns: json.columns,
           paging: false,
-          stateSave: true,
+          searching: false,
           'rowCallback': function (row, data, index) {
             var status_col = $(row).find('td:eq(3)')
             var last_poll_col = $(row).find('td:eq(2)')
+            var host = data['hostname']
 
             // Change status row to use up/down circles and status colors
             status_col.empty();
             if (data['status'] == 'Down') {
-              status_col.addClass("has-text-danger");
               status_col.append('<i class="fas fa-arrow-circle-down"></i>');
+              $(row).addClass('has-background-danger has-text-white');
             } else {
               status_col.addClass("has-text-success");
               status_col.append('<i class="fas fa-arrow-circle-up"></i>');
             }
 
-            // Add link to last poll and event listener for loading history in modal
-            last_poll_col.wrapInner('<a>');
-            last_poll_col.click(function () {
-              load_poll_history(data['hostname'], data['id']);
-            });
+            // Add link to last poll and event listener for loading poll history in modal
+            var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
+            last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick +'><i class="fa fa-history"></i></span>')
           }
         })
       }
@@ -98,10 +102,9 @@
   }
 
   // Load Polling History for Host
-  async function load_poll_history(hostname, id) {
-    var modal_title = hostname + ' - Poll History'
+  async function loadPollHistory(hostname, id) {
     await clear_modal();
-    await add_modal_content(modal_title, '<div class="container has-text-centered"><table id="modal-table" class="table is-fullwidth is-hoverable is-striped"></table></div>');
+    await add_modal_content(hostname, '<div class="table-container"><table class="table is-fullwidth is-hoverable is-striped" id="modal-table" ></table></div>', 'Poll History');
     await $.ajax({
       url: '/getPollHistory/' + id,
       type: 'GET',
@@ -115,6 +118,7 @@
           "data": json_data
         }
         $('#modal-table').DataTable({
+          "order": [[0, "desc"]],
           data: json.data,
           columns: json.columns,
           paging: true
@@ -124,6 +128,22 @@
     await show_modal();
   }
 
+  // Fullscreen Toggle
+  function fullscreenToggle() {
+    var section = $("#expand-me")
+    var expander = $("#expander")
+
+    if (section.hasClass('fullscreen') == true) {
+      section.removeClass('fullscreen')
+      expander.removeClass("fa fa-compress-arrows-alt")
+      expander.addClass("fa fa-expand-arrows-alt")
+    } else {
+      section.addClass('fullscreen')
+      expander.removeClass("fa fa-expand-arrows-alt")
+      expander.addClass("fa fa-compress-arrows-alt")
+    }
+  }
+
   // Show progress bar until datatable loads
   // Update datatable at interval of {{ poll_interval }} seconds
   $(document).ready(function () {
@@ -131,6 +151,11 @@
     updateHostCounts();
     setInterval(updateTable, {{ poll_interval }});
     setInterval(updateHostCounts, {{ poll_interval }});
+
+    // Expand body listener
+    $("#expand").click(function () {
+      fullscreenToggle();
+    })
   });
 
 </script>
