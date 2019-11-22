@@ -36,7 +36,7 @@ python setup.py
 # Running Web Server
 To run the web server the most basic (lazy) way, you can run the following from the main directory of this repo:
 ```
-python webapp\webserv.py
+python webserv.py
 ```
 
 By default, the web server will be running on ***http://127.0.0.1:80***
