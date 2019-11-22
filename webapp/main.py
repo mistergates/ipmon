@@ -8,9 +8,9 @@ import re
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp.database import Hosts, Polling, PollHistory
-from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA
-from webapp import db
+from webapp.database import Hosts, Polling, PollHistory, WebThemes
+from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA, WEB_THEMES_SCHEMA, WEB_THEME_SCHEMA
+from webapp import db, app
 from webapp.host_polling import poll_host, update_poll_scheduler
 
 main = Blueprint('main', __name__)
@@ -38,6 +38,31 @@ def get_host_counts():
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
 
     return json.dumps({'total_hosts': total, 'available_hosts': num_up, 'unavailable_hosts': num_down})
+
+
+@main.route('/setTheme', methods=['GET', 'POST'])
+@flask_login.login_required
+def set_theme():
+    '''Set Theme'''
+    if request.method == 'GET':
+        return render_template('setTheme.html', themes=get_web_themes())
+    elif request.method == 'POST':
+        results = request.form.to_dict()
+        print(results)
+
+        try:
+            for theme in get_web_themes():
+                print(theme)
+                theme_obj = WebThemes.query.filter_by(id=int(theme['id'])).first()
+                if theme_obj.id == int(results['id']):
+                    theme_obj.active = True
+                else:
+                    theme_obj.active = False
+            db.session.commit()
+            flash('Successfully updated theme', 'success')
+        except Exception as exc:
+            flash('Failed to update theme: {}'.format(exc), 'danger')
+    return redirect(url_for('main.set_theme'))
 
 
 @main.route('/configurePolling', methods=['GET', 'POST'])
@@ -175,3 +200,16 @@ def get_polling_config():
 @main.route('/getPollHistory/<host_id>', methods=['GET'])
 def get_poll_history(host_id):
     return json.dumps(POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
+
+
+@main.route('/getWebThemes', methods=['GET'])
+def get_web_themes():
+    return WEB_THEMES_SCHEMA.dump(WebThemes.query.all())
+
+
+##########################
+# Custom Jinja Functions #
+##########################
+def get_active_theme_path():
+    return WEB_THEME_SCHEMA.dump(WebThemes.query.filter_by(active=True).first())['theme_path']
+app.add_template_global(get_active_theme_path, name='get_active_theme_path')

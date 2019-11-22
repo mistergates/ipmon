@@ -13,9 +13,10 @@ try:
     from sqlalchemy import create_engine
 
     from webapp import db, config, app
-    from webapp.database import Users, Polling, SmtpServer
-except ImportError:
+    from webapp.database import Users, Polling, SmtpServer, WebThemes
+except ImportError as exc:
     print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'requirements.txt')))
+    print(exc)
     sys.exit(1)
 
 def check_existing_database():
@@ -44,6 +45,19 @@ def create_database():
     db.Model.metadata.create_all(engine)
 
 
+def add_web_themes():
+    '''Adds web themes to the database'''
+    print('\nAdding web themes to the database...')
+    
+    for i, theme in enumerate(config['Web_Themes']):
+        print('  {}'.format(theme))
+        active = False
+        if i == 0:
+            active = True
+        web_theme = WebThemes(theme_name=theme, theme_path=config['Web_Themes'][theme], active=active)
+        db.session.add(web_theme)
+
+
 def create_admin_user_interactive():
     '''Create the admin user interactively'''
     print('\nCreating the admin user account\n')
@@ -62,10 +76,10 @@ def create_admin_user_interactive():
         else:
             print('\n!! Passwords did not match !!\n')
 
-    with app.app_context():
-        admin_user = Users(email=email, username=username, password=sha256_crypt.hash(password))
-        db.session.add(admin_user)
-        db.session.commit()
+    # with app.app_context():
+    admin_user = Users(email=email, username=username, password=sha256_crypt.hash(password))
+    db.session.add(admin_user)
+        # db.session.commit()
 
 
 
@@ -73,10 +87,10 @@ def set_poll_interval_interactive():
     '''Set the poll interval interactively'''
     poll_interval = int(input('\n  Poll interval in seconds (time between polling servers): ').strip())
     history_truncate_days = int(input('\n  Number of days to keep poll history: ').strip())
-    with app.app_context():
-        poll = Polling(poll_interval=poll_interval, history_truncate_days=history_truncate_days)
-        db.session.add(poll)
-        db.session.commit()
+    # with app.app_context():
+    poll = Polling(poll_interval=poll_interval, history_truncate_days=history_truncate_days)
+    db.session.add(poll)
+        # db.session.commit()
 
 
 def configure_smtp_server_interactive():
@@ -87,10 +101,10 @@ def configure_smtp_server_interactive():
         smtp_port = int(input('  SMTP Port: '))
         smtp_sender = input('  SMTP Sender Address: ').strip()
 
-        with app.app_context():
-            smtp = SmtpServer(smtp_server=smtp_server, smtp_port=smtp_port, smtp_sender=smtp_sender)
-            db.session.add(smtp)
-            db.session.commit()
+        # with app.app_context():
+        smtp = SmtpServer(smtp_server=smtp_server, smtp_port=smtp_port, smtp_sender=smtp_sender)
+        db.session.add(smtp)
+            # db.session.commit()
 
 
 def failure_cleanup(error):
@@ -107,9 +121,12 @@ if __name__ == '__main__':
     try:
         check_existing_database()
         create_database()
-        create_admin_user_interactive()
-        set_poll_interval_interactive()
-        configure_smtp_server_interactive()
+        with app.app_context():
+            add_web_themes()
+            create_admin_user_interactive()
+            set_poll_interval_interactive()
+            configure_smtp_server_interactive()
+            db.session.commit()
     except (Exception, KeyboardInterrupt) as exc:
         failure_cleanup(exc)
         sys.exit(1)

@@ -5,7 +5,7 @@ import json
 import atexit
 import argparse
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from webapp import app, scheduler
 from webapp.host_polling import update_poll_scheduler
 from webapp.main import get_polling_config

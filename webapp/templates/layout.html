@@ -2,43 +2,14 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="/static/css/bulmaswatch.min.css">
+    {% set theme = get_active_theme_path() %}
+    <link rel="stylesheet" type="text/css" href="{{ theme }}" />
     <link rel="stylesheet" type="text/css" href="/static/css/datatables.css" />
     <script type="text/javascript" src="/static/javascript/jquery.js"></script>
     <script type="text/javascript" src="/static/javascript/datatables.js"></script>
     <script type="text/javascript" defer src="/static/fontawesome/js/all.js"></script>
 
     <title>IPMON</title>
-
-    <style>
-        table {
-            width: 100% !important;
-        }
-
-        .fullscreen {
-            position: fixed;
-            width: 100vw;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            background: #fff;
-            z-index: 30;
-            overflow-y: auto;
-        }
-
-        .notifications {
-            position: fixed;
-            width: 100vw;
-            height: auto;
-            left: 0;
-            top: 0;
-            background: rgba(0, 0, 0, .5);
-            z-index: 40;
-            overflow-y: auto;
-            display: none;
-            /* padding: 10px; */
-        }
-    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -98,8 +69,6 @@
         }
 
         function closeNotifications() {
-            // await $("#notifications").css({"display": "inline-block"})
-            // $("#notifications").fadeOut(3000);
             $("#notifications").css({"display": "none"})
         }
     </script>
@@ -181,6 +150,7 @@
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
                                 <li><a href="{{ url_for('auth.account') }}">Account</a></li>
+                                <li><a href="{{ url_for('main.set_theme') }}">Theme</a></li>
                             </ul>
                             <p class="menu-label">
                                 Hosts

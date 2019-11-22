@@ -5,3 +5,5 @@ sqlalchemy
 marshmallow
 passlib
 flask_apscheduler
+flask_script
+flask_migrate
