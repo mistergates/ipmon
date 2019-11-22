@@ -8,8 +8,8 @@ import re
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp.database import Hosts, Polling, PollHistory, WebThemes
-from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA, WEB_THEMES_SCHEMA, WEB_THEME_SCHEMA
+from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer
+from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA, WEB_THEMES_SCHEMA, WEB_THEME_SCHEMA, USER_SCHEMA, SMTP_SCHEMA
 from webapp import db, app
 from webapp.host_polling import poll_host, update_poll_scheduler
 
@@ -48,11 +48,9 @@ def set_theme():
         return render_template('setTheme.html', themes=get_web_themes())
     elif request.method == 'POST':
         results = request.form.to_dict()
-        print(results)
 
         try:
             for theme in get_web_themes():
-                print(theme)
                 theme_obj = WebThemes.query.filter_by(id=int(theme['id'])).first()
                 if theme_obj.id == int(results['id']):
                     theme_obj.active = True
@@ -61,7 +59,7 @@ def set_theme():
             db.session.commit()
             flash('Successfully updated theme', 'success')
         except Exception as exc:
-            flash('Failed to update theme: {}'.format(exc), 'danger')
+            flash('Failed to update theme', 'danger')
     return redirect(url_for('main.set_theme'))
 
 
@@ -153,15 +151,13 @@ def update_hosts():
         host =  Hosts.query.filter_by(id=int(results['id'])).first()
         try:
             if results['hostname']:
-                print('Updating hostname')
                 host.hostname = results['hostname']
             if results['ip_address']:
-                print('Updating IP')
                 host.ip_address = results['ip_address']
             db.session.commit()
-            flash('Successfully updated host', 'success')
+            flash('Successfully updated host {}'.format(host.hostname), 'success')
         except Exception:
-            flash('Failed to update host', 'danger')
+            flash('Failed to update host {}'.format(host.hostname), 'danger')
 
         return redirect(url_for('main.update_hosts'))
 
@@ -205,6 +201,16 @@ def get_poll_history(host_id):
 @main.route('/getWebThemes', methods=['GET'])
 def get_web_themes():
     return WEB_THEMES_SCHEMA.dump(WebThemes.query.all())
+
+
+@main.route('/getAlertsEnabled', methods=['GET'])
+def get_alerts_enabled():
+    return USER_SCHEMA.dump(Users.query.first())['alerts_enabled']
+
+
+@main.route('/getSmtpConfigured', methods=['GET'])
+def get_smtp_configured():
+    return True if SMTP_SCHEMA.dump(SmtpServer.query.first()) else False
 
 
 ##########################

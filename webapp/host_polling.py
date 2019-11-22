@@ -14,25 +14,32 @@ from webapp.database import Hosts, PollHistory
 def poll_hosts():
     '''Polls hosts threaded and commits results to DB'''
     pool = ThreadPool(20)
-    threads = []
+    threads = {}
+    hosts_changed = []
     with app.app_context():
         hosts = Hosts.query.all()
 
         for host in hosts:
-            threads.append(pool.apply_async(_poll_host_threaded, (host,)))
+            threads[host.hostname] = pool.apply_async(_poll_host_threaded, (host,))
         pool.close()
         pool.join()
 
-        for thread in threads:
-            thread.get()
+        for x in threads:
+            status_changed = threads[x].get()
+            if status_changed:
+                hosts_changed.append(host)
 
         db.session.commit()
+
+    if hosts_changed:
+        print('HOST CHANGED!!! {}'.format(host))
 
 
 def _poll_host_threaded(host):
     status, poll_time, hostname = poll_host(host.ip_address)
 
     # Update host status
+    host.previous_status = host.status
     host.status = status
     host.last_poll = poll_time
     if hostname:
@@ -47,6 +54,12 @@ def _poll_host_threaded(host):
         )
         db.session.add(new_poll_history)
         db.session.commit()
+
+    # Send email if status changed
+    if host.previous_status != status:
+        return True
+    else:
+        return False
 
 
 def poll_host(host, new_host=False):
@@ -77,4 +90,4 @@ def update_poll_scheduler(poll_interval):
     except Exception:
         pass
 
-    scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=poll_interval, max_instances=1)
+    scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=int(poll_interval), max_instances=1)

@@ -8,7 +8,7 @@
         <form method="POST" action="/setTheme">
             <div class="field">
                 <div class="select">
-                    <select>
+                    <select name="id">
                         {% for theme in themes %}
                         <option value="{{ theme['id'] }}">{{ theme['theme_name'] }}</option>
                         {% endfor %}

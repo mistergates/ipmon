@@ -7,7 +7,8 @@ import socket
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db
-from webapp.database import SmtpServer, SMTP_SCHEMA
+from webapp.database import SmtpServer, SMTP_SCHEMA, Users, USER_SCHEMA
+from webapp.main import get_alerts_enabled
 
 from passlib.hash import sha256_crypt
 from email.mime.text import MIMEText
@@ -67,6 +68,22 @@ def smtp_test():
     return redirect(url_for('smtp.smtp_config'))
 
 
+def send_status_change_alert(host):
+    print('SENDING ALERT IF APPLICABLE')
+    if get_alerts_enabled() and _smtp_enabled():
+        _send_smtp_message(
+            recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
+            subject='{} {} [{}]'.format(host.hostname, host.status, host.last_poll),
+            message='{} [{}] Status changed from {} to {} at {}.'.format(
+                host.hostname,
+                host.ip_address,
+                host.previous_status,
+                host.status,
+                host.last_poll
+            )
+        )
+
+
 ##########################
 # Private Functions ######
 ##########################
@@ -89,3 +106,10 @@ def _send_smtp_message(recipient, subject, message):
     # Send message
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())
     server.quit()
+
+def _smtp_enabled():
+    smtp_conf = SmtpServer.query.filter_by(id='1').first()
+    if not smtp_conf:
+        return False
+    else:
+        return True
