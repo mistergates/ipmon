@@ -14,9 +14,13 @@ try:
 
     from webapp import db, config, app
     from webapp.database import Users, Polling, SmtpServer, WebThemes
-except ImportError as exc:
-    print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'requirements.txt')))
-    print(exc)
+except ImportError:
+    print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'requirements.txt'
+            )
+    ))
     sys.exit(1)
 
 def check_existing_database():
@@ -132,4 +136,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     print('\n\nSetup complete!')
-    print('To start the webapp, please run "python webapp/webserv.py" (lazy loading, move to a service for production use)\n')
+    print('To start the webapp, please run "python {}" (lazy loading, move to a service for production use)\n'.format(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'webserv.py'
+        )
+    ))

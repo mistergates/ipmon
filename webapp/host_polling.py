@@ -1,3 +1,4 @@
+'''Host Polling Lib'''
 import os
 import sys
 import platform
@@ -14,25 +15,19 @@ from webapp.database import Hosts, PollHistory
 def poll_hosts():
     '''Polls hosts threaded and commits results to DB'''
     pool = ThreadPool(20)
-    threads = {}
-    hosts_changed = []
+    threads = []
     with app.app_context():
         hosts = Hosts.query.all()
 
         for host in hosts:
-            threads[host.hostname] = pool.apply_async(_poll_host_threaded, (host,))
+            threads.append(pool.apply_async(_poll_host_threaded, (host,)))
         pool.close()
         pool.join()
 
-        for x in threads:
-            status_changed = threads[x].get()
-            if status_changed:
-                hosts_changed.append(host)
+        for thread in threads:
+            thread.get()
 
         db.session.commit()
-
-    if hosts_changed:
-        print('HOST CHANGED!!! {}'.format(host))
 
 
 def _poll_host_threaded(host):
@@ -57,12 +52,12 @@ def _poll_host_threaded(host):
 
     # Send email if status changed
     if host.previous_status != status:
-        return True
-    else:
-        return False
+        host.status_change_alert = True
+        print('HOST STATUS CHANGED!!! {}'.format(host.hostname))
 
 
 def poll_host(host, new_host=False):
+    '''Poll host via ICMP ping to see if it is up/down'''
     param = '-n' if platform.system().lower() == 'windows' else '-c'
     command = ['ping', param, '1', host]
     hostname = None
@@ -83,7 +78,7 @@ def poll_host(host, new_host=False):
 
 
 def update_poll_scheduler(poll_interval):
-
+    '''Updates the Poll Hosts schedula via APScheduler'''
     # Attempt to remove the current scheduler
     try:
         scheduler.scheduler.remove_job('Poll Hosts')

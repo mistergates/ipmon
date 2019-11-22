@@ -41,6 +41,7 @@ class Hosts(db.Model):
     status = db.Column(db.String(length=10))
     last_poll = db.Column(db.String(length=20))
     previous_status = db.Column(db.String(length=10))
+    status_change_alert = db.Column(db.Boolean, default=False)
     poll_history = db.relationship("PollHistory")
 
 
@@ -48,7 +49,7 @@ class HostsSchema(Schema):
     '''Hosts Schema'''
     class Meta:
         '''Meta'''
-        fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll')
+        fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll', 'status_change_alert')
 
 
 class PollHistory(db.Model):

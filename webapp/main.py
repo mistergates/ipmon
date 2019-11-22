@@ -33,6 +33,7 @@ def favicon():
 
 @main.route('/getHostCounts', methods=['GET'])
 def get_host_counts():
+    '''Get host total, available, unavailable host counts'''
     total = Hosts.query.count()
     num_up = Hosts.query.filter(Hosts.status == 'Up').count()
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
@@ -58,7 +59,7 @@ def set_theme():
                     theme_obj.active = False
             db.session.commit()
             flash('Successfully updated theme', 'success')
-        except Exception as exc:
+        except Exception:
             flash('Failed to update theme', 'danger')
     return redirect(url_for('main.set_theme'))
 
@@ -185,31 +186,37 @@ def delete_host():
 #####################
 @main.route('/getHosts', methods=['GET'])
 def get_hosts():
+    '''Get all hosts'''
     return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
 
 
 @main.route('/getPollingConfig', methods=['GET'])
 def get_polling_config():
+    '''Get polling config'''
     return json.dumps(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
 
 
 @main.route('/getPollHistory/<host_id>', methods=['GET'])
 def get_poll_history(host_id):
+    '''Get poll history for a single host'''
     return json.dumps(POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
 
 
 @main.route('/getWebThemes', methods=['GET'])
 def get_web_themes():
+    '''Get all web themese'''
     return WEB_THEMES_SCHEMA.dump(WebThemes.query.all())
 
 
 @main.route('/getAlertsEnabled', methods=['GET'])
 def get_alerts_enabled():
+    '''Get whether alerts are enabled or not'''
     return USER_SCHEMA.dump(Users.query.first())['alerts_enabled']
 
 
 @main.route('/getSmtpConfigured', methods=['GET'])
 def get_smtp_configured():
+    '''Get whether SMTP configured or not'''
     return True if SMTP_SCHEMA.dump(SmtpServer.query.first()) else False
 
 
@@ -217,5 +224,6 @@ def get_smtp_configured():
 # Custom Jinja Functions #
 ##########################
 def get_active_theme_path():
+    '''Get the file path for the active theme'''
     return WEB_THEME_SCHEMA.dump(WebThemes.query.filter_by(active=True).first())['theme_path']
 app.add_template_global(get_active_theme_path, name='get_active_theme_path')
