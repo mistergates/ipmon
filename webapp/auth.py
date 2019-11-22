@@ -91,7 +91,7 @@ def login():
 @auth.route('/addUser', methods=['GET', 'POST'])
 @flask_login.login_required
 def add_user():
-
+    '''Add user to database'''
     if request.method == 'GET':
         return render_template('addUser.html')
     elif request.method == 'POST':

@@ -2,7 +2,6 @@
 import os
 import flask_login
 
-
 from werkzeug.exceptions import HTTPException
 
 from flask_apscheduler import APScheduler
@@ -18,9 +17,12 @@ def handle_error(error):
         desc = error.description
     return render_template('error.html', code=code, desc=desc)
 
-
 config = {
-    'Database_Name': 'sqlite.db'
+    'Database_Name': 'sqlite.db',
+    'Web_Themes': {
+        'Dark': '/static/css/slate.min.css',
+        'Light': '/static/css/flatly.min.css'
+    }
 }
 
 config['Database_Path'] =  os.path.join(

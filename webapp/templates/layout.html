@@ -2,7 +2,8 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="/static/css/bulmaswatch.min.css">
+    {% set theme = get_active_theme_path() %}
+    <link rel="stylesheet" type="text/css" href="{{ theme }}" />
     <link rel="stylesheet" type="text/css" href="/static/css/datatables.css" />
     <script type="text/javascript" src="/static/javascript/jquery.js"></script>
     <script type="text/javascript" src="/static/javascript/datatables.js"></script>
@@ -10,25 +11,95 @@
 
     <title>IPMON</title>
 
-    <style>
-        table {
-            width: 100% !important;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    
+            // Get all "navbar-burger" elements
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    
+            // Check if there are any navbar burgers
+            if ($navbarBurgers.length > 0) {
+    
+                // Add a click event on each of them
+                $navbarBurgers.forEach(el => {
+                    el.addEventListener('click', () => {
+    
+                        // Get the target from the "data-target" attribute
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+    
+                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+    
+                    });
+                });
+            }
+        });
+    
+        // Modal Controls
+        function modalClear() {
+            $("#modal-title").empty()
+            $("#modal-body").empty()
+            $("#modal-footer").empty()
+        }
+    
+        function modalShow() {
+            $("#modal-container").addClass('is-active');
+        }
+    
+        function modalAddContent(title, body, footer) {
+            $("#modal-title").append(title);
+            $("#modal-body").append(body);
+            $("#modal-footer").append(footer);
+        }
+    
+        function modalClose() {
+            $("#modal-container").removeClass('is-active');
+            modalClear();
+        }
+    
+        // Display Notifications
+        function displayNotifications() {
+            $("#notifications").css({"display": "unset"})
+            window.setTimeout(function(){
+                $("#notifications").fadeOut(2000); 
+            }, 3000);
+            
         }
 
-        .fullscreen {
-            position: fixed;
-            width: 100vw;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            background: #fff;
-            z-index: 30;
-            overflow-y: auto;
+        function closeNotifications() {
+            $("#notifications").css({"display": "none"})
         }
-    </style>
+    </script>
+
 </head>
 
 <body>
+    <!-- Notifications -->
+    <section class="hero-body notifications" id="notifications">
+        <div class="container has-text-centered">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="container">
+                    <button class="button is-pulled-right" style="cursor: pointer;" onclick="closeNotifications();">
+                        <span class="icon is-medium">
+                            <i class="fa fa-window-close"></i>
+                        </span>
+                    </button>
+                </div>
+                
+                <script>displayNotifications();</script>
+                {% for category, message in messages %}
+                <div class="notification is-{{category}}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+        </div>
+    </section>
+
     <!-- Header -->
     <section class="hero is-primary is-medium">
         <div class="hero-head">
@@ -36,7 +107,7 @@
                 <div class="container">
                     <div class="navbar-brand">
                         <a href="{{ url_for('main.index') }}" class="navbar-item is-size-3 has-text-white">
-                            IPMON&nbsp;<i class="fas fa-network-wired has-text-success"></i>
+                            <i class="fas fa-network-wired has-text-success"></i>&nbsp;IPMON
                         </a>
                         <span class="navbar-burger burger" data-target="navbarMenuHeroA">
                             <span></span>
@@ -64,7 +135,6 @@
         </div>
     </section>
 
-    <!-- Main Content -->
     <section class="hero">
         <div class="hero-body">
             <div class="container">
@@ -80,19 +150,20 @@
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
                                 <li><a href="{{ url_for('auth.account') }}">Account</a></li>
+                                <li><a href="{{ url_for('main.set_theme') }}">Theme</a></li>
                             </ul>
                             <p class="menu-label">
-                                Configure
+                                Hosts
                             </p>
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
-                                <li><a href="{{ url_for('main.delete_hosts') }}">Delete Hosts</a></li>
+                                <li><a href="{{ url_for('main.update_hosts') }}">Update Hosts</a></li>
                             </ul>
                             <p class="menu-label">
                                 Polling
                             </p>
                             <ul class="menu-list">
-                                <li><a href="{{ url_for('main.configure_polling') }}">Polling Interval</a></li>
+                                <li><a href="{{ url_for('main.configure_polling') }}">Polling Configuration</a></li>
                             </ul>
                             <p class="menu-label">
                                 Notifications
@@ -100,19 +171,13 @@
                             <ul class="menu-list">
                                 <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
                             </ul>
-                            <!-- <p class="menu-label">
-                                Users
-                            </p>
-                            <ul class="menu-list">
-                                <li><a>Add User</a></li>
-                                <li><a>Remove User</a></li>
-                            </ul> -->
                         </aside>
                     </div>
                     {% endif %}
 
-                    <!-- Block Content -->
+                    <!-- Main Content -->
                     <div class="column">
+                        <!-- Notifications -->
                         {% block content %}
                         {% endblock %}
                     </div>
@@ -148,7 +213,7 @@
                 <p class="modal-card-title" id="modal-title">
                     <!-- Title -->
                 </p>
-                <button class="delete" aria-label="close" id="close-modal"></button>
+                <button class="delete" aria-label="close" onclick="modalClose();"></button>
             </header>
             <section class="modal-card-body" id="modal-body">
                 <!-- Body -->
@@ -160,56 +225,5 @@
     </div>
 
 </body>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-
-        // Get all "navbar-burger" elements
-        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-
-        // Check if there are any navbar burgers
-        if ($navbarBurgers.length > 0) {
-
-            // Add a click event on each of them
-            $navbarBurgers.forEach(el => {
-                el.addEventListener('click', () => {
-
-                    // Get the target from the "data-target" attribute
-                    const target = el.dataset.target;
-                    const $target = document.getElementById(target);
-
-                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-                    el.classList.toggle('is-active');
-                    $target.classList.toggle('is-active');
-
-                });
-            });
-        }
-
-    });
-
-    // Modal Controls
-    function clear_modal() {
-        $("#modal-title").empty()
-        $("#modal-body").empty()
-        $("#modal-footer").empty()
-    }
-
-    function show_modal() {
-        $("#modal-container").addClass('is-active');
-    }
-
-    function add_modal_content(title, body, footer) {
-        $("#modal-title").append(title);
-        $("#modal-body").append(body);
-        $("#modal-footer").append(footer);
-    }
-
-    $("#close-modal").click(function () {
-        $("#modal-container").removeClass('is-active');
-        clear_modal();
-    });
-
-</script>
 
 </html>

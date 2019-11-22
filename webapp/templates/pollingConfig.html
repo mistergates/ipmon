@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="hero-body">
+    <p class="title">Polling Confugration</p>
+    <div class="container">
+        <form method="POST" action="/configurePolling">
+            <label class="label">Polling Interval</label>
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="polling_interval"
+                    placeholder="{{ polling_config['poll_interval'] }}">
+                </div>
+                <p class="help">The amount of time in seconds between polling hosts</p>
+            </div>
+            <label class="label">Poll History Retention Days</label>
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="history_truncate_days"
+                        placeholder="{{ polling_config['history_truncate_days'] }}">
+                </div>
+                <p class="help">The number of days to keep poll history logs for each host</p>
+            </div>
+            <div class="control">
+                <button class="button is-block is-info is-medium">Update</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

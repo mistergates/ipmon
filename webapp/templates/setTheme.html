@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="hero-body">
+    <p class="title">Set Theme</p>
+    <div class="container">
+        <form method="POST" action="/setTheme">
+            <div class="field">
+                <div class="select">
+                    <select name="id">
+                        {% for theme in themes %}
+                        {% if theme['active'] == true %}
+                        <option value="{{ theme['id'] }}">{{ theme['theme_name'] }}</option>
+                        {% endif %}
+                        {% endfor %}
+                        {% for theme in themes %}
+                        {% if theme['active'] == false %}
+                        <option value="{{ theme['id'] }}">{{ theme['theme_name'] }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-block is-info is-medium">Update</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

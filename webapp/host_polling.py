@@ -1,3 +1,4 @@
+'''Host Polling Lib'''
 import os
 import sys
 import platform
@@ -33,9 +34,11 @@ def _poll_host_threaded(host):
     status, poll_time, hostname = poll_host(host.ip_address)
 
     # Update host status
+    host.previous_status = host.status
     host.status = status
     host.last_poll = poll_time
-    host.hostname = hostname
+    if hostname:
+        host.hostname = hostname
 
     # Add poll history for host
     with app.app_context():
@@ -47,28 +50,39 @@ def _poll_host_threaded(host):
         db.session.add(new_poll_history)
         db.session.commit()
 
+    # Send email if status changed
+    if host.previous_status != status:
+        host.status_change_alert = True
+        print('HOST STATUS CHANGED!!! {}'.format(host.hostname))
 
-def poll_host(host):
+
+def poll_host(host, new_host=False):
+    '''Poll host via ICMP ping to see if it is up/down'''
     param = '-n' if platform.system().lower() == 'windows' else '-c'
     command = ['ping', param, '1', host]
+    hostname = None
+
     response = subprocess.call(
         command,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
 
-    try:
-        hostname = socket.getfqdn(host)
-    except socket.error:
-        hostname = 'Unknown'
+    if new_host:
+        try:
+            hostname = socket.getfqdn(host)
+        except socket.error:
+            hostname = 'Unknown'
 
     return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'), hostname)
 
 
 def update_poll_scheduler(poll_interval):
-    # scheduler.scheduler.remove_all_jobs()
+    '''Updates the Poll Hosts schedula via APScheduler'''
+    # Attempt to remove the current scheduler
     try:
         scheduler.scheduler.remove_job('Poll Hosts')
     except Exception:
         pass
-    scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=poll_interval, max_instances=1)
+
+    scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=int(poll_interval), max_instances=1)
