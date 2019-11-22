@@ -68,7 +68,6 @@ def smtp_test():
 
 def host_status_change_alerts():
     '''Send SMTP alert if host statuses have changed'''
-    print('SENDING ALERT IF APPLICABLE')
     with app.app_context():
         if get_alerts_enabled() and _smtp_enabled():
             message = ''
@@ -86,6 +85,7 @@ def host_status_change_alerts():
             db.session.commit()
 
             if message:
+                print('Sending SMTP Alert')
                 _send_smtp_message(
                     recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
                     subject='IPMON - Host Status Change Alert',

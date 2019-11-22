@@ -10,7 +10,14 @@
                 <div class="select">
                     <select name="id">
                         {% for theme in themes %}
+                        {% if theme['active'] == true %}
                         <option value="{{ theme['id'] }}">{{ theme['theme_name'] }}</option>
+                        {% endif %}
+                        {% endfor %}
+                        {% for theme in themes %}
+                        {% if theme['active'] == false %}
+                        <option value="{{ theme['id'] }}">{{ theme['theme_name'] }}</option>
+                        {% endif %}
                         {% endfor %}
                     </select>
                 </div>
