@@ -71,9 +71,10 @@ def create_admin_user_interactive():
 
 def set_poll_interval_interactive():
     '''Set the poll interval interactively'''
-    poll_interval = int(input('\n  Poll interval in seconds (time between polling servers): '))
+    poll_interval = int(input('\n  Poll interval in seconds (time between polling servers): ').strip())
+    history_truncate_days = int(input('\n  Number of days to keep poll history: ').strip())
     with app.app_context():
-        poll = Polling(poll_interval=poll_interval)
+        poll = Polling(poll_interval=poll_interval, history_truncate_days=history_truncate_days)
         db.session.add(poll)
         db.session.commit()
 

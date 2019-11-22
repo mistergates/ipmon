@@ -35,7 +35,8 @@ def _poll_host_threaded(host):
     # Update host status
     host.status = status
     host.last_poll = poll_time
-    host.hostname = hostname
+    if hostname:
+        host.hostname = hostname
 
     # Add poll history for host
     with app.app_context():
@@ -48,27 +49,32 @@ def _poll_host_threaded(host):
         db.session.commit()
 
 
-def poll_host(host):
+def poll_host(host, new_host=False):
     param = '-n' if platform.system().lower() == 'windows' else '-c'
     command = ['ping', param, '1', host]
+    hostname = None
+
     response = subprocess.call(
         command,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
 
-    try:
-        hostname = socket.getfqdn(host)
-    except socket.error:
-        hostname = 'Unknown'
+    if new_host:
+        try:
+            hostname = socket.getfqdn(host)
+        except socket.error:
+            hostname = 'Unknown'
 
     return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'), hostname)
 
 
 def update_poll_scheduler(poll_interval):
-    # scheduler.scheduler.remove_all_jobs()
+
+    # Attempt to remove the current scheduler
     try:
         scheduler.scheduler.remove_job('Poll Hosts')
     except Exception:
         pass
+
     scheduler.scheduler.add_job(id='Poll Hosts', func=poll_hosts, trigger='interval', seconds=poll_interval, max_instances=1)

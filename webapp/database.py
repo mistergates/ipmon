@@ -47,6 +47,7 @@ class PollHistory(db.Model):
     host_id = db.Column(db.Integer, db.ForeignKey('hosts.id'))
     poll_time = db.Column(db.String(length=20))
     poll_status = db.Column(db.String(length=20))
+    date_created = db.Column(db.Date, default=datetime.now())
 
 
 class Polling(db.Model):
@@ -55,7 +56,8 @@ class Polling(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    poll_interval = db.Column(db.Integer, nullable=False)
+    poll_interval = db.Column(db.Integer, default=60, nullable=False)
+    history_truncate_days = db.Column(db.Integer, default=10, nullable=False)
 
 
 class SmtpServer(db.Model):
@@ -90,14 +92,14 @@ class PollHistorySchema(Schema):
     '''Poll History Schema'''
     class Meta:
         '''Meta'''
-        fields = ('id', 'host_id', 'poll_time', 'poll_status')
+        fields = ('id', 'host_id', 'poll_time', 'poll_status', 'date_created')
 
 
 class PollingSchema(Schema):
     '''Polling Schema'''
     class Meta:
         '''Meta'''
-        fields = ('id', 'poll_interval')
+        fields = ('id', 'poll_interval', 'history_truncate_days')
 
 
 class AlertsSchema(Schema):

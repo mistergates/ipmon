@@ -5,12 +5,12 @@ import flask_login
 import json
 import re
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp.database import Hosts, Polling, PollHistory
 from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA
-from webapp import db, scheduler
+from webapp import db
 from webapp.host_polling import poll_host, update_poll_scheduler
 
 main = Blueprint('main', __name__)
@@ -21,23 +21,14 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     '''Index page'''
-    interval = int(json.loads(get_polling_interval())['poll_interval']) * 1000
+    interval = int(json.loads(get_polling_config())['poll_interval']) * 1000
     return render_template('index.html', poll_interval=interval)
 
 
-@main.route('/getHosts', methods=['GET'])
-def get_hosts():
-    return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
-
-
-@main.route('/getPollingInterval', methods=['GET'])
-def get_polling_interval():
-    return json.dumps(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
-
-
-@main.route('/getPollHistory/<host_id>', methods=['GET'])
-def get_poll_history(host_id):
-    return json.dumps(POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
+@main.route('/favicon.ico')
+def favicon():
+    '''Favicon'''
+    return send_from_directory(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @main.route('/getHostCounts', methods=['GET'])
@@ -54,28 +45,25 @@ def get_host_counts():
 def configure_polling():
     '''Poll Interval'''
     if request.method == 'GET':
-        interval = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())['poll_interval']
-        return render_template('pollingInterval.html', poll_interval=interval)
+        polling_config = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())
+        return render_template('pollingConfig.html', polling_config=polling_config)
     elif request.method == 'POST':
         results = request.form.to_dict()
 
-        try:
-            polling_interval = int(results['polling_interval'])
-        except ValueError:
-            flash('Must provide an integer!', 'danger')
-            return redirect(url_for('main.configure_polling'))
-
         polling_config = Polling.query.filter_by(id=1).first()
         try:
-            polling_config.poll_interval = polling_interval
+            if results['polling_interval']:
+                polling_config.poll_interval = int(results['polling_interval'])
+            if results['history_truncate_days']:
+                polling_config.history_truncate_days = int(results['history_truncate_days'])
+            db.session.commit()
         except Exception:
             flash('Failed to update polling interval', 'danger')
             return redirect(url_for('main.configure_polling'))
 
-        db.session.commit()
-
         # Update scheduled polling interval
-        update_poll_scheduler(polling_interval)
+        if results['polling_interval']:
+            update_poll_scheduler(results['polling_interval'])
 
         flash('Successfully updated polling interval', 'success')
         return redirect(url_for('main.configure_polling'))
@@ -106,7 +94,7 @@ def add_hosts():
                 flash('IP Address {} already exists.'.format(ip_address), 'danger')
                 continue
 
-            status, current_time, hostname = poll_host(ip_address)
+            status, current_time, hostname = poll_host(ip_address, new_host=True)
 
             # create new host database object
             new_host = Hosts(
@@ -128,23 +116,62 @@ def add_hosts():
         return redirect(url_for('main.add_hosts'))
 
 
-@main.route('/deleteHosts', methods=['GET', 'POST'])
+@main.route('/updateHosts', methods=['GET', 'POST'])
 @flask_login.login_required
-def delete_hosts():
-    '''Delete Hosts Page'''
+def update_hosts():
+    '''Update Hosts'''
     if request.method == 'GET':
-        return render_template('deleteHosts.html', hosts=HOSTS_SCHEMA.dump(Hosts.query.all()))
+        return render_template('updateHosts.html', hosts=HOSTS_SCHEMA.dump(Hosts.query.all()))
     elif request.method == 'POST':
         results = request.form.to_dict()
-        for host in results:
-            host_id, hostname = host.split()
-            try:
-                Hosts.query.filter_by(id=host_id).delete()
-                PollHistory.query.filter_by(host_id=host_id).delete()
-                flash('Successfully deleted {}'.format(hostname), 'success')
-            except Exception as exc:
-                flash('Failed to delete {}: {}'.format(hostname, exc), 'danger')
-                continue
 
-        db.session.commit()
-        return redirect(url_for('main.delete_hosts'))
+        host =  Hosts.query.filter_by(id=int(results['id'])).first()
+        try:
+            if results['hostname']:
+                print('Updating hostname')
+                host.hostname = results['hostname']
+            if results['ip_address']:
+                print('Updating IP')
+                host.ip_address = results['ip_address']
+            db.session.commit()
+            flash('Successfully updated host', 'success')
+        except Exception:
+            flash('Failed to update host', 'danger')
+
+        return redirect(url_for('main.update_hosts'))
+
+
+@main.route('/deleteHost', methods=['POST'])
+@flask_login.login_required
+def delete_host():
+    '''Delete Hosts Page'''
+    if request.method == 'POST':
+        results = request.form.to_dict()
+
+        try:
+            Hosts.query.filter_by(id=results['id']).delete()
+            PollHistory.query.filter_by(host_id=results['id']).delete()
+            db.session.commit()
+            flash('Successfully deleted {}'.format(results['hostname']), 'success')
+        except Exception as exc:
+            flash('Failed to delete {}: {}'.format(results['hostname'], exc), 'danger')
+
+        return redirect(url_for('main.update_hosts'))
+
+
+#####################
+# API Routes ########
+#####################
+@main.route('/getHosts', methods=['GET'])
+def get_hosts():
+    return json.dumps(HOSTS_SCHEMA.dump(Hosts.query.all()))
+
+
+@main.route('/getPollingConfig', methods=['GET'])
+def get_polling_config():
+    return json.dumps(POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
+
+
+@main.route('/getPollHistory/<host_id>', methods=['GET'])
+def get_poll_history(host_id):
+    return json.dumps(POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))

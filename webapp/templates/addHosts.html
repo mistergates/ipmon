@@ -1,18 +1,6 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<!-- Notifications -->
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="notification is-{{category}} is-overlay">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-</div>
 
 <!-- Add Single Host -->
 <section class="hero-body">

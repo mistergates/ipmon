@@ -2,17 +2,7 @@
 
 {% block content %}
 <!-- Notifications -->
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="notification is-{{category}} is-overlay">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-</div>
+
 
 <!-- Update SMTP Form -->
 <section class="hero-body">
@@ -43,14 +33,6 @@
                 </div>
             </div>
 
-            <!-- <div class="field">
-                <label class="label">SMTP Password</label>
-                <div class="control">
-                    <input class="input is-large" type="password" name="smtp_password">
-                </div>
-                <p class="help">If your SMTP server requires authentication, set the password for the from address here.
-                </p>
-            </div> -->
             <div class="control">
                 <button class="button is-block is-info is-medium">Update</button>
             </div>

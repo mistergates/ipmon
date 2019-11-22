@@ -26,9 +26,9 @@
 </div>
 
 <section class="hero-body" id="expand-me">
-  <button class="button is-small is-outlined is-pulled-right" id="expand">
+  <button class="button is-small is-white has-text-primary is-pulled-right" id="expand">
     <span class="icon is-small">
-      <i class="fa fa-expand-arrows-alt" id="expander"></i>
+      <i class="fa fa-window-maximize" id="expander"></i>
     </span>
   </button>
   <table class="table is-fullwidth is-hoverable is-striped" id="ip-status">
@@ -81,13 +81,17 @@
 
             // Add link to last poll and event listener for loading poll history in modal
             var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
-            last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick +'><i class="fa fa-history"></i></span>')
+            if (!$(last_poll_col).has("span").length) {
+              last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
+            }
+
           }
         })
       }
     });
   }
 
+  // Updates Total, Active and Inactive host counts
   async function updateHostCounts() {
     await $.ajax({
       url: '/getHostCounts',
@@ -103,8 +107,8 @@
 
   // Load Polling History for Host
   async function loadPollHistory(hostname, id) {
-    await clear_modal();
-    await add_modal_content(hostname, '<div class="table-container"><table class="table is-fullwidth is-hoverable is-striped" id="modal-table" ></table></div>', 'Poll History');
+    await modalClear();
+    await modalAddContent('Poll History', '<p class="title is-4">' + hostname + '</p><div class="table-container"><table class="table is-fullwidth is-hoverable is-striped" id="modal-table" ></table></div>');
     await $.ajax({
       url: '/getPollHistory/' + id,
       type: 'GET',
@@ -125,7 +129,7 @@
         });
       }
     });
-    await show_modal();
+    await modalShow();
   }
 
   // Fullscreen Toggle
@@ -135,20 +139,21 @@
 
     if (section.hasClass('fullscreen') == true) {
       section.removeClass('fullscreen')
-      expander.removeClass("fa fa-compress-arrows-alt")
-      expander.addClass("fa fa-expand-arrows-alt")
+      expander.removeClass("fa fa-window-restore")
+      expander.addClass("fa fa-window-maximize")
     } else {
       section.addClass('fullscreen')
-      expander.removeClass("fa fa-expand-arrows-alt")
-      expander.addClass("fa fa-compress-arrows-alt")
+      expander.removeClass("fa fa-window-maximize")
+      expander.addClass("fa fa-window-restore")
     }
   }
 
-  // Show progress bar until datatable loads
-  // Update datatable at interval of {{ poll_interval }} seconds
   $(document).ready(function () {
+    // Initialize datatable and host counts on load
     updateTable();
     updateHostCounts();
+
+    // Update datatable and host counts at interval of {{ poll_interval }} seconds
     setInterval(updateTable, {{ poll_interval }});
     setInterval(updateHostCounts, {{ poll_interval }});
 

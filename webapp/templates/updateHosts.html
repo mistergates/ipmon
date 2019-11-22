@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- Hosts Table -->
+<section class="hero-body">
+    <p class="title">Update Hosts</p>
+    <div class="container has-text-centered">
+        <table class="table is-fullwidth is-hoverable is-striped" id="hosts">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Hostname</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for host in hosts %}
+                {% set id = host['id'] %}
+                {% set hostname = host['hostname'] %}
+                {% set ip = host['ip_address'] %}
+                <tr>
+                    <td>
+                        <span class="icon" style="cursor: pointer;"
+                            onClick="updateHostModal('{{ id }}', '{{ hostname }}', '{{ ip }}')">
+                            <i class="fa fa-edit"></i>
+                        </span>
+                        <span class="icon has-text-danger" style="cursor: pointer;"
+                            onClick="deleteHostModal('{{ id }}', '{{ hostname }}')">
+                            <i class="fa fa-trash"></i>
+                        </span>
+                    </td>
+                    <td>
+                        {{ host['hostname'] }}
+                    </td>
+                    <td>
+                        {{ host['ip_address'] }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Load Datatable -->
+<script>
+    $(document).ready(function () {
+        $('#hosts').DataTable({
+            paging: false,
+            stateSave: true
+        })
+    });
+
+    // Update host modal
+    // Submitting the form in this modal updates the host
+    async function updateHostModal(id, hostname, ip) {
+        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + id + '"></div>'
+        var hostnameField = '<div class="field"><label class="label">Hostname</label><div class="control"><input class="input is-medium" type="text" name="hostname" placeholder=" ' + hostname + '"></div></div>'
+        var ipField = '<div class="field"><label class="label">IP Address</label><div class="control"><input class="input is-medium" type="text" name="ip_address" placeholder=" ' + ip + '"></div></div>'
+        var submitButton = '<div class="control"><button class="button is-block is-info is-medium">Update</button></div>'
+        await modalClear();
+        await modalAddContent('Update', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/updateHosts">' + idFieldHidden + hostnameField + ipField + submitButton + '</form></div>');
+        await modalShow();
+    }
+
+
+    // Delete host modal
+    // Submitting the form in this modal deletes the host
+    async function deleteHostModal(id, hostname) {
+        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + id + '"></div>'
+        var hostnameFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="hostname" value="' + hostname + '"></div>'
+        var confirmDelete = '<p class="title is-5">Delete ' + hostname + '?</p>'
+        var deleteButton = '<div class="control"><button class="button is-danger is-info is-medium">Delete</button></div>'
+        await modalClear();
+        await modalAddContent('Delete', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/deleteHost">' + confirmDelete + idFieldHidden + hostnameFieldHidden  + deleteButton + '</form></div>');
+        await modalShow();
+    }
+
+</script>
+
+{% endblock %}

@@ -48,3 +48,8 @@ By default, the web server will be running on ***http://127.0.0.1:80***
 - Setup email alerting for host status changes
 - Configure job to truncate poll logs (user controls how far to keep logs)
 - Allow manual changing of hostnames
+- Automatically update database if schema changes
+- Update Docstrings
+- Create module for input validations
+- Move host management to own module/blueprint
+- Move javascript to static file
