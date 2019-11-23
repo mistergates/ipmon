@@ -18,18 +18,16 @@ def handle_error(error):
     return render_template('error.html', code=code, desc=desc)
 
 config = {
-    'Database_Name': 'sqlite.db',
+    'Database_Path': os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'database',
+        'sqlite.db'
+    ),
     'Web_Themes': {
         'Dark': '/static/css/slate.min.css',
         'Light': '/static/css/flatly.min.css'
     }
 }
-
-config['Database_Path'] =  os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'database',
-    config['Database_Name']
-)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)

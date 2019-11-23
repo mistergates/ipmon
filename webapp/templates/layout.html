@@ -71,6 +71,48 @@
         function closeNotifications() {
             $("#notifications").css({"display": "none"})
         }
+
+        // Get Alerts
+        function getAlerts() {
+            
+        }
+
+        // Display Alerts
+        async function displayAlerts() {
+            var title='Host Alerts'
+            var body='<table id="alerts-table" class="table is-striped"></table>'
+            await modalClear();
+            await modalAddContent(title, body);
+
+            await $.ajax({
+                url: '/getHostAlerts',
+                type: 'GET',
+                success: function (response) {
+                    var json_data = JSON.parse(response)
+                    var json = {
+                        "columns": [
+                            { "data": "hostname", "title": "Hostname" },
+                            { "data": "ip_address", "title": "IP Address" },
+                            { "data": "poll_time", "title": "Poll Time" },
+                            { "data": "host_status", "title": "Host Status" }
+                        ],
+                        "data": json_data
+                    }
+
+                    if ($.fn.DataTable.isDataTable('#alerts-table')) {
+                        $('#alerts-table').DataTable().destroy();
+                    }
+
+                    var table = $('#alerts-table').DataTable({
+                        "order": [[2, "desc"]],
+                        data: json.data,
+                        columns: json.columns
+                    });
+                }
+            });
+            await modalShow();
+        }
+
     </script>
 
 </head>
@@ -116,6 +158,9 @@
                         </span>
                     </div>
                     <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-start">
+                            <a class="navbar-item" onClick="displayAlerts();">Alerts</a>
+                        </div>
                         <div class="navbar-end">
                             {% if current_user.is_authenticated %}
                             <a href="{{ url_for('auth.account') }}" class="navbar-item">
@@ -156,20 +201,17 @@
                                 Hosts
                             </p>
                             <ul class="menu-list">
-                                <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
-                                <li><a href="{{ url_for('main.update_hosts') }}">Update Hosts</a></li>
+                                <li><a href="{{ url_for('hosts.add_hosts') }}">Add Hosts</a></li>
+                                <li><a href="{{ url_for('hosts.update_hosts') }}">Update Hosts</a></li>
                             </ul>
                             <p class="menu-label">
-                                Polling
+                                Configuration
                             </p>
                             <ul class="menu-list">
-                                <li><a href="{{ url_for('main.configure_polling') }}">Polling Configuration</a></li>
+                                <li><a href="{{ url_for('main.configure_polling') }}">Polling </a></li>
                             </ul>
-                            <p class="menu-label">
-                                Notifications
-                            </p>
                             <ul class="menu-list">
-                                <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
+                                <li><a href="{{ url_for('smtp.smtp_config') }}">SMTP</a></li>
                             </ul>
                         </aside>
                     </div>

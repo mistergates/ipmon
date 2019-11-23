@@ -1,9 +1,10 @@
 flask
 flask_login
 flask-sqlalchemy
-sqlalchemy
-marshmallow
-passlib
 flask_apscheduler
 # flask_script
 # flask_migrate
+flask_wtf
+sqlalchemy
+marshmallow
+passlib

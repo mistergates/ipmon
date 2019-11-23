@@ -44,9 +44,13 @@ By default, the web server will be running on ***http://127.0.0.1:80***
 ***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
 
 # TODO
-- Document APIs
-- Configure job to truncate poll logs (user controls how far to keep logs)
-- Automatically update database if schema changes
-- Create module for input validations
-- Move host management to own module/blueprint
+- Configure job to truncate poll logs (user controls how long to keep logs)
+- Move forms to WTForms w/ validations
 - Move javascript to static file
+- Account page
+    - Notifications Toggle
+    - Update Password
+- Add/Update/Remove users under Configuration menu
+- Keep track of database schema changes
+- Correctly join tables
+- Document APIs

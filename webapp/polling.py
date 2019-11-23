@@ -10,7 +10,7 @@ from multiprocessing.pool import ThreadPool
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import app, db, scheduler
-from webapp.database import Hosts, PollHistory
+from webapp.database import Hosts, PollHistory, HostAlerts
 
 def poll_hosts():
     '''Polls hosts threaded and commits results to DB'''
@@ -37,6 +37,7 @@ def _poll_host_threaded(host):
     host.previous_status = host.status
     host.status = status
     host.last_poll = poll_time
+
     if hostname:
         host.hostname = hostname
 
@@ -48,12 +49,20 @@ def _poll_host_threaded(host):
             poll_status=status
         )
         db.session.add(new_poll_history)
-        db.session.commit()
 
-    # Send email if status changed
-    if host.previous_status != status:
-        host.status_change_alert = True
-        print('HOST STATUS CHANGED!!! {}'.format(host.hostname))
+        # Create alert if status changed
+        if host.previous_status != status:
+            print('HOST STATUS CHANGED!!! {}'.format(host.hostname))
+            new_host_alert = HostAlerts(
+                host_id=host.id,
+                hostname=host.hostname,
+                ip_address=host.ip_address,
+                host_status=host.status,
+                poll_time=host.last_poll
+            )
+            db.session.add(new_host_alert)
+
+        db.session.commit()
 
 
 def poll_host(host, new_host=False):

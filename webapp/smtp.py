@@ -3,14 +3,16 @@ import os
 import sys
 import flask_login
 import smtplib
+import json
 
 from email.mime.text import MIMEText
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db, scheduler, app
-from webapp.database import SmtpServer, SMTP_SCHEMA, Users, USER_SCHEMA, Hosts
-from webapp.main import get_alerts_enabled
+from webapp.database import SmtpServer, Users, Hosts, HostAlerts
+from webapp.database import SMTP_SCHEMA, USER_SCHEMA
+from webapp.api import get_alerts_enabled, get_smtp_configured, get_new_host_alerts
 
 smtp = Blueprint('smtp', __name__)
 
@@ -66,39 +68,6 @@ def smtp_test():
     return redirect(url_for('smtp.smtp_config'))
 
 
-def host_status_change_alerts():
-    '''Send SMTP alert if host statuses have changed'''
-    with app.app_context():
-        if get_alerts_enabled() and _smtp_enabled():
-            message = ''
-            for host in Hosts.query.filter_by(status_change_alert=True):
-                message += '{} [{}] Status changed from {} to {} at {}\n\n'.format(
-                    host.hostname,
-                    host.ip_address,
-                    host.previous_status,
-                    host.status,
-                    host.last_poll
-                )
-                # Set status_change_alert to False so we don't send duplicated alerts
-                host.status_change_alert = False
-
-            db.session.commit()
-
-            if message:
-                print('Sending SMTP Alert')
-                _send_smtp_message(
-                    recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
-                    subject='IPMON - Host Status Change Alert',
-                    message='{} [{}] Status changed from {} to {} at {}.'.format(
-                        host.hostname,
-                        host.ip_address,
-                        host.previous_status,
-                        host.status,
-                        host.last_poll
-                    )
-                )
-
-
 def update_status_change_alert_schedule(alert_interval):
     '''Updates the PHost Status Change Alert schedula via APScheduler'''
     # Attempt to remove the current scheduler
@@ -107,7 +76,7 @@ def update_status_change_alert_schedule(alert_interval):
     except Exception:
         pass
 
-    scheduler.scheduler.add_job(id='Host Status Change Alert', func=host_status_change_alerts, trigger='interval', seconds=int(alert_interval), max_instances=1)
+    scheduler.scheduler.add_job(id='Host Status Change Alert', func=_host_status_change_alerts, trigger='interval', seconds=int(alert_interval), max_instances=1)
 
 
 ##########################
@@ -133,9 +102,36 @@ def _send_smtp_message(recipient, subject, message):
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())
     server.quit()
 
-def _smtp_enabled():
-    smtp_conf = SmtpServer.query.filter_by(id='1').first()
-    if not smtp_conf:
-        return False
-    else:
-        return True
+
+def _host_status_change_alerts():
+    '''Send SMTP alert if host statuses have changed'''
+    message = ''
+    with app.app_context():
+        alerts_enabled = json.loads(get_alerts_enabled())['alerts_enabled']
+        smtp_configured = json.loads(get_smtp_configured())['smtp_configured']
+        new_host_alerts = json.loads(get_new_host_alerts())
+    
+        for host_alert in new_host_alerts:
+            alert = HostAlerts.query.filter_by(id=host_alert['id'])
+            host = Hosts.query.filter_by(id=host_alert['host_id'])
+
+            if alerts_enabled and smtp_configured:
+                message += '{} [{}] Status changed from {} to {} at {}\n\n'.format(
+                    host.hostname,
+                    host.ip_address,
+                    host.previous_status,
+                    host.status,
+                    host.last_poll
+                )
+
+            # Clear alert
+            alert.alert_cleared = True
+            db.session.commit()
+
+    if message:
+        print('Sending SMTP Alert')
+        _send_smtp_message(
+            recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
+            subject='IPMON - Host Status Change Alert',
+            message=message
+        )

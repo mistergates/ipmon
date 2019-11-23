@@ -41,8 +41,8 @@ class Hosts(db.Model):
     status = db.Column(db.String(length=10))
     last_poll = db.Column(db.String(length=20))
     previous_status = db.Column(db.String(length=10))
-    status_change_alert = db.Column(db.Boolean, default=False)
     poll_history = db.relationship("PollHistory")
+    alerts = db.relationship("HostAlerts")
 
 
 class HostsSchema(Schema):
@@ -58,10 +58,10 @@ class PollHistory(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    host_id = db.Column(db.Integer, db.ForeignKey('hosts.id'))
     poll_time = db.Column(db.String(length=20))
     poll_status = db.Column(db.String(length=20))
     date_created = db.Column(db.Date, default=datetime.now())
+    host_id = db.Column(db.Integer, db.ForeignKey('hosts.id'))
 
 
 class PollHistorySchema(Schema):
@@ -69,6 +69,28 @@ class PollHistorySchema(Schema):
     class Meta:
         '''Meta'''
         fields = ('id', 'host_id', 'poll_time', 'poll_status', 'date_created')
+
+
+class HostAlerts(db.Model):
+    '''Alerts For Host Status Change'''
+    __tablename__ = 'hostAlerts'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(length=100))
+    ip_address = db.Column(db.String(length=15))
+    host_status = db.Column(db.String(length=20))
+    poll_time = db.Column(db.String(length=20))
+    alert_cleared = db.Column(db.Boolean, default=False)
+    date_created = db.Column(db.Date, default=datetime.now())
+    host_id = db.Column(db.Integer, db.ForeignKey('hosts.id'))
+
+
+class HostAlertsSchema(Schema):
+    '''Host Alerts Schema'''
+    class Meta:
+        '''Meta'''
+        fields = ('id', 'hostname', 'ip_address', 'host_status', 'poll_time', 'alert_cleared', 'date_created', 'host_id')
 
 
 class Polling(db.Model):
@@ -132,6 +154,7 @@ HOST_SCHEMA = HostsSchema()
 HOSTS_SCHEMA = HostsSchema(many=True)
 POLL_HISTORY_SCHEMA = PollHistorySchema(many=True)
 POLLING_SCHEMA = PollingSchema()
+HOST_ALERTS_SCHEMA = HostAlertsSchema(many=True)
 SMTP_SCHEMA = SmtpSchema()
 WEB_THEME_SCHEMA = WebThemesSchema()
 WEB_THEMES_SCHEMA = WebThemesSchema(many=True)

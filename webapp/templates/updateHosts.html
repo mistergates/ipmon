@@ -21,7 +21,7 @@
                 {% set ip = host['ip_address'] %}
                 <tr>
                     <td>
-                        <span class="icon" style="cursor: pointer;"
+                        <span class="icon has-text-info" style="cursor: pointer;"
                             onClick="updateHostModal('{{ id }}', '{{ hostname }}', '{{ ip }}')">
                             <i class="fa fa-edit"></i>
                         </span>
@@ -47,7 +47,6 @@
 <script>
     $(document).ready(function () {
         $('#hosts').DataTable({
-            paging: false,
             stateSave: true
         })
     });

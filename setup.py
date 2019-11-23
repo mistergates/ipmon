@@ -27,8 +27,7 @@ def check_existing_database():
     '''Checks to see if the database already exists. Exit if it does.'''
     database_file = config['Database_Path']
     if os.path.exists(database_file):
-        print('Database file "{}" already exists.'.format(database_file))
-        print('To reconfigure the database, please delete this file first.')
+        print('Database already exists. To reconfigure the database, please delete the database file first.')
         print('\nWARNING: Deleting this file WILL DESTROY ALL DATA (Users, currency, etc.). DELETE AT YOUR OWN RISK!')
         print('\n\nExiting setup...')
         sys.exit(1)

@@ -7,7 +7,7 @@
     <div class="level-item">
       <div>
         <p class="heading">Total Hosts</p>
-        <p class="title has-text-primary" id="total-hosts"></p>
+        <p class="title" id="total-hosts"></p>
       </div>
     </div>
     <div class="level-item has-text-centered">
@@ -31,7 +31,7 @@
       <i class="fa fa-window-maximize" id="expander"></i>
     </span>
   </button>
-  <table class="table is-striped" style="width:100%" id="ip-status">
+  <table class="table is-striped" id="ip-status">
     <!-- Data Table -->
   </table>
 </section>
@@ -60,9 +60,9 @@
 
         var table = $('#ip-status').DataTable({
           "order": [[3, "asc"]],
+          "iDisplayLength": 50,
           data: json.data,
           columns: json.columns,
-          paging: false,
           searching: false,
           'rowCallback': function (row, data, index) {
             var status_col = $(row).find('td:eq(3)')
@@ -79,10 +79,10 @@
               status_col.append('<i class="fas fa-arrow-circle-up"></i>');
             }
 
-            // Add link to last poll and event listener for loading poll history in modal
+            // Add link to load poll history for host
             var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
             if (!$(last_poll_col).has("span").length) {
-              last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
+              last_poll_col.append('<span class="icon has-text-info" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
             }
 
           }
