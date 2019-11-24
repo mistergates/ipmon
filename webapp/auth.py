@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import login_manager
 from webapp import db
 from webapp.database import Users, USER_SCHEMA
+from webapp.forms import LoginForm
 
 from passlib.hash import sha256_crypt
 from flask import Blueprint, render_template, redirect, url_for, request, flash
@@ -69,23 +70,23 @@ def logout():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page'''
-    if request.method == 'GET':
-        return render_template('login.html')
+    form = LoginForm()
+    if request.method == 'GET': 
+        return render_template('login.html', form=form)
+    elif request.method == 'POST':
+        if form.validate_on_submit():
+            username = request.form['username']
+            remember = True if request.form.get('remember') else False
 
-    username = request.form['username']
-    remember = True if request.form.get('remember') else False
+            if not get_user(username) or not verify_password(request.form):
+                flash('Invalid Username/Password', 'danger')
 
-    if not get_user(username) or not verify_password(request.form):
-        flash('Invalid Username/Password')
-    elif verify_password(request.form):
-        user = User()
-        user.id = username
-        flask_login.login_user(user, remember=remember)
-        return redirect(url_for('main.index'))
-    else:
-        flash('Error logging in')
+            user = User()
+            user.id = username
+            flask_login.login_user(user, remember=remember)
+            return redirect(url_for('main.index'))
 
-    return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login'))
 
 
 @auth.route('/addUser', methods=['GET', 'POST'])
