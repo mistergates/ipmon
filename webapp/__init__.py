@@ -26,13 +26,15 @@ config = {
     'Web_Themes': {
         'Dark': '/static/css/slate.min.css',
         'Light': '/static/css/flatly.min.css'
-    }
+    },
+    'Pool_Size': 100
 }
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(config['Database_Path'])
+app.config['SQLALCHEMY_POOL_SIZE '] = config['Pool_Size'] * 2
 
 db = SQLAlchemy()
 db.init_app(app)

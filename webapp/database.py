@@ -149,12 +149,13 @@ class WebThemesSchema(Schema):
 ##########################
 # Schemas ################
 ##########################
-USER_SCHEMA = UserSchema()
-HOST_SCHEMA = HostsSchema()
-HOSTS_SCHEMA = HostsSchema(many=True)
-POLL_HISTORY_SCHEMA = PollHistorySchema(many=True)
-POLLING_SCHEMA = PollingSchema()
-HOST_ALERTS_SCHEMA = HostAlertsSchema(many=True)
-SMTP_SCHEMA = SmtpSchema()
-WEB_THEME_SCHEMA = WebThemesSchema()
-WEB_THEMES_SCHEMA = WebThemesSchema(many=True)
+class Schemas():
+    USER_SCHEMA = UserSchema()
+    HOST_SCHEMA = HostsSchema()
+    HOSTS_SCHEMA = HostsSchema(many=True)
+    POLL_HISTORY_SCHEMA = PollHistorySchema(many=True)
+    POLLING_SCHEMA = PollingSchema()
+    HOST_ALERTS_SCHEMA = HostAlertsSchema(many=True)
+    SMTP_SCHEMA = SmtpSchema()
+    WEB_THEME_SCHEMA = WebThemesSchema()
+    WEB_THEMES_SCHEMA = WebThemesSchema(many=True)

@@ -7,7 +7,7 @@ import flask_login
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import login_manager
 from webapp import db
-from webapp.database import Users, USER_SCHEMA
+from webapp.database import Users, Schemas
 from webapp.forms import LoginForm
 
 from passlib.hash import sha256_crypt
@@ -20,7 +20,7 @@ auth = Blueprint('auth', __name__)
 # Database calls #########
 ##########################
 def get_user(username):
-    """Get user based on username. Will try to find user via email if email address was provided.
+    """Get user based on username
 
     Args:
         username (str): Username
@@ -28,15 +28,11 @@ def get_user(username):
     Returns:
         dict
     """
-    regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-    if re.search(regex, str(username)):
-        user_data = Users.query.filter_by(email=username).first()
-    else:
-        user_data = Users.query.filter_by(username=username).first()
-    return USER_SCHEMA.dump(user_data)
+    user_data = Users.query.filter_by(username=username).first()
+    return Schemas.USER_SCHEMA.dump(user_data)
 
 
-def verify_password(form):
+def verify_password(username, password):
     """Verify password entered using SHA256 Encryption.
 
     Args:
@@ -45,7 +41,7 @@ def verify_password(form):
     Returns:
         bool: Whether or not the password was verified.
     """
-    return sha256_crypt.verify(form['password'], get_user(form['username'])['password'])
+    return sha256_crypt.verify(password, get_user(username)['password'])
 
 
 ##########################
@@ -75,16 +71,22 @@ def login():
         return render_template('login.html', form=form)
     elif request.method == 'POST':
         if form.validate_on_submit():
-            username = request.form['username']
-            remember = True if request.form.get('remember') else False
+            username = form.username.data
+            password = form.password.data
+            remember_me = form.remember_me.data
 
-            if not get_user(username) or not verify_password(request.form):
-                flash('Invalid Username/Password', 'danger')
+            if not get_user(username) or not verify_password(username, password):
+                flash('Invalid Username/Password combination', 'danger')
+                return redirect(url_for('auth.login'))
 
             user = User()
             user.id = username
-            flask_login.login_user(user, remember=remember)
+            flask_login.login_user(user, remember=remember_me)
             return redirect(url_for('main.index'))
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
 
         return redirect(url_for('auth.login'))
 
@@ -160,7 +162,7 @@ def request_loader(req):
         # Username not found
         return
 
-    if not verify_password( {'username': username, 'password': password} ):
+    if not verify_password(username, password):
         # Invalid password provided
         return
 

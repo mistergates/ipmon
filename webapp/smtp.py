@@ -10,9 +10,8 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db, scheduler, app
-from webapp.database import SmtpServer, Users, Hosts, HostAlerts
-from webapp.database import SMTP_SCHEMA, USER_SCHEMA
-from webapp.api import get_alerts_enabled, get_smtp_configured, get_new_host_alerts
+from webapp.database import SmtpServer, Users, Hosts, HostAlerts, Schemas
+from webapp.api import get_alerts_enabled, get_smtp_configured, get_new_host_alerts, get_host
 
 smtp = Blueprint('smtp', __name__)
 
@@ -25,7 +24,7 @@ smtp = Blueprint('smtp', __name__)
 def smtp_config():
     '''SMTP Config'''
     if request.method == 'GET':
-        current_smtp = SMTP_SCHEMA.dump(SmtpServer.query.first())
+        current_smtp = Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first())
         return render_template('smtpConfig.html', smtp=current_smtp)
     elif request.method == 'POST':
         results = request.form.to_dict()
@@ -83,7 +82,7 @@ def update_status_change_alert_schedule(alert_interval):
 # Private Functions ######
 ##########################
 def _send_smtp_message(recipient, subject, message):
-    current_smtp = SMTP_SCHEMA.dump(SmtpServer.query.first())
+    current_smtp = Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first())
 
     msg = MIMEText(message)
     msg['Subject'] = subject
@@ -112,16 +111,16 @@ def _host_status_change_alerts():
         new_host_alerts = json.loads(get_new_host_alerts())
     
         for host_alert in new_host_alerts:
-            alert = HostAlerts.query.filter_by(id=host_alert['id'])
-            host = Hosts.query.filter_by(id=host_alert['host_id'])
+            alert = HostAlerts.query.filter_by(id=host_alert['id']).first()
+            host = get_host(alert.host_id)
 
             if alerts_enabled and smtp_configured:
                 message += '{} [{}] Status changed from {} to {} at {}\n\n'.format(
-                    host.hostname,
-                    host.ip_address,
-                    host.previous_status,
-                    host.status,
-                    host.last_poll
+                    host['hostname'],
+                    host['ip_address'],
+                    host['previous_status'],
+                    host['status'],
+                    host['last_poll']
                 )
 
             # Clear alert
@@ -129,9 +128,8 @@ def _host_status_change_alerts():
             db.session.commit()
 
     if message:
-        print('Sending SMTP Alert')
         _send_smtp_message(
-            recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
+            recipient=Schemas.USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
             subject='IPMON - Host Status Change Alert',
             message=message
         )

@@ -5,61 +5,86 @@ import flask_login
 import json
 import re
 
+from multiprocessing.pool import ThreadPool
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp.database import Hosts, PollHistory, HostAlerts
-from webapp import db, app
+from webapp import db, app, config
 from webapp.api import get_web_themes, get_polling_config, get_active_theme, get_hosts
-from webapp.polling import poll_host, update_poll_scheduler
+from webapp.polling import poll_host, update_poll_scheduler, get_hostname
+from webapp.forms import AddHostsForm, UpdateHostForm
+from wtforms.validators import IPAddress
 
 hosts = Blueprint('hosts', __name__)
-
 
 @hosts.route('/addHosts', methods=['GET', 'POST'])
 @flask_login.login_required
 def add_hosts():
     '''Add Hosts Page'''
+    form = AddHostsForm()
     if request.method == 'GET':
-        return render_template('addHosts.html')
+        return render_template('addHosts.html', form=form)
     elif request.method == 'POST':
-        results = request.form.to_dict()
-        for ip_address in results['ip'].split('\n'):
-            ip_address = ip_address.strip()
+        if form.validate_on_submit():
+            pool = ThreadPool(config['Pool_Size'])
+            threads = []
+            for ip_address in form.ip_address.data.split('\n'):
+                ip_address = ip_address.strip()
+                validator = IPAddress(ipv4=True)
 
-            regex = '''^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
-                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
-                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
-                        25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)'''
+                if not validator.check_ipv4(ip_address):
+                    flash('{} Is not a valid IP address'.format(ip_address), 'danger')
+                    continue
 
-            if not re.search(regex, ip_address):
-                flash('{} Is not a valid IP address'.format(ip_address), 'danger')
-                continue
+                if Hosts.query.filter_by(ip_address=ip_address).first():
+                    flash('IP Address {} already exists.'.format(ip_address), 'danger')
+                    continue
 
-            if Hosts.query.filter_by(ip_address=ip_address).first():
-                flash('IP Address {} already exists.'.format(ip_address), 'danger')
-                continue
+                threads.append(
+                    pool.apply_async(_add_hosts_threaded, (ip_address,))
+                )
 
-            status, current_time, hostname = poll_host(ip_address, new_host=True)
+            pool.close()
+            pool.join()
+            for thread in threads:
+                new_host = thread.get()
+                try:
+                    # add the new host to the database
+                    db.session.add(new_host)
+                    flash(u'Successfully added {} ({})'.format(ip_address, new_host.hostname), 'success')
+                except Exception as exc:
+                    flash(u'Failed to add {}: {}'.format(ip_address, exc), 'danger')
+                    continue
 
-            # create new host database object
-            new_host = Hosts(
-                ip_address=ip_address,
-                hostname=hostname,
-                status=status,
-                last_poll=current_time
-            )
+            db.session.commit()
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
 
-            try:
-                # add the new host to the database
-                db.session.add(new_host)
-                flash(u'Successfully added {} ({})'.format(ip_address, hostname), 'success')
-            except Exception:
-                flash(u'Failed to add {}'.format(hostname), 'danger')
-                continue
-
-        db.session.commit()
         return redirect(url_for('hosts.add_hosts'))
+
+
+def _add_hosts_threaded(ip_address):
+    # status, current_time, hostname = poll_host(ip_address, new_host=True)
+
+
+    # create new host database object
+    new_host = Hosts(
+        ip_address=ip_address,
+        hostname=get_hostname(ip_address)
+    )
+
+    # try:
+    #     # add the new host to the database
+    #     db.session.add(new_host)
+    #     flash(u'Successfully added {} ({})'.format(ip_address, hostname), 'success')
+    # except Exception:
+    #     flash(u'Failed to add {}'.format(hostname), 'danger')
+    #     continue
+
+    return new_host
 
 
 @hosts.route('/updateHosts', methods=['GET', 'POST'])

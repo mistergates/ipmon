@@ -9,8 +9,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db, app
-from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer
-from webapp.database import HOSTS_SCHEMA, POLLING_SCHEMA, POLL_HISTORY_SCHEMA, WEB_THEMES_SCHEMA, WEB_THEME_SCHEMA, USER_SCHEMA, SMTP_SCHEMA
+from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, Schemas
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
 from webapp.polling import poll_host, update_poll_scheduler
 
@@ -60,7 +59,7 @@ def set_theme():
 def configure_polling():
     '''Poll Interval'''
     if request.method == 'GET':
-        polling_config = POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())
+        polling_config = Schemas.POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())
         return render_template('pollingConfig.html', polling_config=polling_config)
     elif request.method == 'POST':
         results = request.form.to_dict()

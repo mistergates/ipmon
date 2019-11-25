@@ -6,15 +6,19 @@
 <section class="hero-body">
     <div class="container">
         <p class="title">Add Hosts</p>
-        <form method="POST" action="{{ url_for('hosts.add_hosts') }}">
+        <form method="POST" action="{{ url_for('hosts.add_hosts') }}" novalidate>
+            {{ form.hidden_tag() }}
             <div class="field">
                 <div class="control">
-                    <textarea class="textarea is-medium" rows="10" placeholder="IP Addresses" name="ip" autofocus="" required></textarea>
+                    {{ form.ip_address.label(class_="label") }}
+                    {{ form.ip_address(class_="textarea is-medium") }}
+                    <!-- <textarea class="textarea is-medium" rows="10" placeholder="IP Addresses" name="ip" autofocus="" required></textarea> -->
                 </div>
                 <p class="help">One IP address per line</p>
             </div>
             <div class="control">
-                <button class="button is-info is-medium">Add</button>
+                <!-- <button class="button is-info is-medium">Add</button> -->
+                {{ form.submit(class_="button is-info is-medium") }}
             </div>
         </form>
     </div>

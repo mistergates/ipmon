@@ -49,6 +49,7 @@ By default, the web server will be running on ***http://127.0.0.1:80***
 ***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
 
 # TODO
+- Add loader overlay for longer running tasks (such as adding multiple hosts)
 - Configure job to truncate poll logs (user controls how long to keep logs)
 - Move forms to WTForms w/ validations
 - Move javascript to static file
