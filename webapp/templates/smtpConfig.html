@@ -3,15 +3,15 @@
 {% block content %}
 
 <!-- Update SMTP Form -->
-<section class="hero-body">
-    <p class="title">SMTP Config</p>
-    <div class="container">
+<div class="column is-4 is-offset-4">
+    <div class="box">
+        <p class="title">SMTP Config</p>
         <form method="POST" action="/smtpConfig">
             <div class="field">
                 <label class="label">Server</label>
                 <div class="control">
-                    <input class="input is-medium" type="text" name="smtp_server" placeholder="{{ smtp['smtp_server'] }}"
-                        required>
+                    <input class="input is-medium" type="text" name="smtp_server"
+                        placeholder="{{ smtp['smtp_server'] }}" required>
                 </div>
             </div>
 
@@ -36,12 +36,12 @@
             </div>
         </form>
     </div>
-</section>
+</div>
 
 <!-- Test SMTP -->
-<section class="hero-body">
-    <p class="title">SMTP Test</p>
-    <div class="container">
+<div class="column is-4 is-offset-4">
+    <div class="box">
+        <p class="title">SMTP Test</p>
         <form method="POST" action="/smtpTest">
             <div class="field">
                 <label class="label">Recipient Email Address</label>
@@ -58,6 +58,6 @@
             </div>
         </form>
     </div>
-</section>
+</div>
 
 {% endblock %}

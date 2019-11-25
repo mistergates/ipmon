@@ -67,13 +67,15 @@ def add_hosts():
 
 
 def _add_hosts_threaded(ip_address):
-    # status, current_time, hostname = poll_host(ip_address, new_host=True)
+    status, current_time, hostname = poll_host(ip_address, new_host=True)
 
 
     # create new host database object
     new_host = Hosts(
         ip_address=ip_address,
-        hostname=get_hostname(ip_address)
+        hostname=hostname,
+        status=status,
+        last_poll=current_time
     )
 
     # try:
@@ -82,7 +84,7 @@ def _add_hosts_threaded(ip_address):
     #     flash(u'Successfully added {} ({})'.format(ip_address, hostname), 'success')
     # except Exception:
     #     flash(u'Failed to add {}'.format(hostname), 'danger')
-    #     continue
+    #     # continue
 
     return new_host
 

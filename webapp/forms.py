@@ -19,8 +19,8 @@ class LoginForm(FlaskForm):
 
 class SmtpConfigForm(FlaskForm):
     server = StringField('Username', validators=[DataRequired(message="Server required")])
-    port = IntegerField('Password', validators=[DataRequired(message="Port required")])
-    sender_address = StringField('Password', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
+    port = IntegerField('Port', validators=[DataRequired(message="Port required")])
+    sender_address = StringField('Sender Address', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
     submit = SubmitField('Update')
 
 
@@ -30,12 +30,17 @@ class AddHostsForm(FlaskForm):
 
 
 class UpdateHostForm(FlaskForm):
-    hostname = StringField('Username')
+    hostname = StringField('Hostname')
     ip_address = TextAreaField('IP Addresses', validators=[IPAddress(ipv6=True, message="Invalid IP address")])
     submit = SubmitField('Update')
 
 
 class SelectThemeForm(FlaskForm):
-    theme = SelectField('Theme', config['Web_Themes'].items())
+    theme = IntegerField('Theme', config['Web_Themes'].items())
     submit = SubmitField('Update')
 
+
+class PollingConfigForm(FlaskForm):
+    interval = IntegerField('Polling Interval')
+    retention_days = IntegerField('Poll History Retention Days')
+    submit = SubmitField('Update')

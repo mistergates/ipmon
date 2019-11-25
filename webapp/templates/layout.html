@@ -36,6 +36,12 @@
                 });
             }
         });
+
+        // Show Loader
+        function showLoader() {
+            $("#main").addClass('is-hidden')
+            $("#loader").removeClass('is-hidden')
+        }
     
         // Modal Controls
         function modalClear() {
@@ -159,9 +165,43 @@
                     </div>
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
-                            <a class="navbar-item" onClick="displayAlerts();">Alerts</a>
+                            {% if current_user.is_authenticated %}
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">
+                                    Hosts
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a href="{{ url_for('hosts.add_hosts') }}" class="navbar-item">
+                                        Add Host
+                                    </a>
+                                    <a href="{{ url_for('hosts.update_hosts') }}" class="navbar-item">
+                                        Update Host
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">
+                                    Configure
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a href="{{ url_for('main.configure_polling') }}" class="navbar-item">
+                                        Polling
+                                    </a>
+                                    <a href="{{ url_for('smtp.smtp_config') }}" class="navbar-item">
+                                        SMTP
+                                    </a>
+                                    <a  href="{{ url_for('main.set_theme') }}" class="navbar-item">
+                                        Theme
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
+
                         <div class="navbar-end">
+                            <a class="navbar-item" onClick="displayAlerts();">
+                                <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;Alerts
+                            </a>
                             {% if current_user.is_authenticated %}
                             <a href="{{ url_for('auth.account') }}" class="navbar-item">
                                 <i class="fas fa-user"></i>&nbsp;&nbsp;{{current_user.id}}
@@ -184,41 +224,17 @@
         <div class="hero-body">
             <div class="container">
                 <div class="columns">
-
-                    {% if current_user.is_authenticated %}
-                    <!-- Side Nav -->
-                    <div class="column is-2">
-                        <aside class="menu is-inline-block">
-                            <p class="menu-label">
-                                General
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                                <li><a href="{{ url_for('auth.account') }}">Account</a></li>
-                                <li><a href="{{ url_for('main.set_theme') }}">Theme</a></li>
-                            </ul>
-                            <p class="menu-label">
-                                Hosts
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('hosts.add_hosts') }}">Add Hosts</a></li>
-                                <li><a href="{{ url_for('hosts.update_hosts') }}">Update Hosts</a></li>
-                            </ul>
-                            <p class="menu-label">
-                                Configuration
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('main.configure_polling') }}">Polling </a></li>
-                            </ul>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('smtp.smtp_config') }}">SMTP</a></li>
-                            </ul>
-                        </aside>
+                    <!-- Loader, displayed if main_content is doing something -->
+                    <div class="column is-hidden" id="loader">
+                        <section class="hero-body">
+                            <div class="container">
+                                <progress class="progress is-large is-info" max="100"></progress>
+                            </div>
+                        </section>
                     </div>
-                    {% endif %}
 
                     <!-- Main Content -->
-                    <div class="column">
+                    <div class="column" id="main">
                         <!-- Notifications -->
                         {% block content %}
                         {% endblock %}

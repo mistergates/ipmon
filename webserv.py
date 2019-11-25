@@ -6,7 +6,7 @@ import atexit
 import argparse
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from webapp import app, scheduler
+from webapp import app, scheduler, config
 from webapp.polling import update_poll_scheduler
 from webapp.smtp import update_status_change_alert_schedule
 from webapp.main import get_polling_config
@@ -23,6 +23,16 @@ parser.add_argument('--debug', action="store_true", default=False, help="Runs th
 args = parser.parse_args()
 
 if __name__ == '__main__':
+    if not os.path.exists(config['Database_Path']):
+        raise Exception(
+            'Database does not exist. Run "python {}"'.format(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'setup.py'
+                )
+            )
+        )
+
     # Register blueprints
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
@@ -34,14 +44,12 @@ if __name__ == '__main__':
     with app.app_context():
         poll_interval = int(json.loads(get_polling_config())['poll_interval'])
 
-    # Start server polling via APScheduler
+    # Add scheduled jobs
     update_poll_scheduler(poll_interval)
-
-    # Start host mintoring for alerts
     update_status_change_alert_schedule(poll_interval / 2)
 
     # Shut down the scheduler when exiting the app
-    atexit.register(lambda: scheduler.shutdown())
+    atexit.register(scheduler.shutdown)
 
     # Run Server
     app.run(host=args.host, port=args.port, debug=args.debug)

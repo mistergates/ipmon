@@ -12,6 +12,7 @@ from webapp import db, app
 from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, Schemas
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
 from webapp.polling import poll_host, update_poll_scheduler
+from webapp.forms import PollingConfigForm
 
 main = Blueprint('main', __name__)
 
@@ -58,9 +59,10 @@ def set_theme():
 @flask_login.login_required
 def configure_polling():
     '''Poll Interval'''
+    form = PollingConfigForm()
     if request.method == 'GET':
-        polling_config = Schemas.POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first())
-        return render_template('pollingConfig.html', polling_config=polling_config)
+        polling_config = json.loads(get_polling_config())
+        return render_template('pollingConfig.html', polling_config=polling_config, form=form)
     elif request.method == 'POST':
         results = request.form.to_dict()
 

@@ -7,6 +7,7 @@ import json
 from flask import Blueprint
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+from webapp import db
 from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, HostAlerts, Schemas
 
 api = Blueprint('api', __name__)
@@ -87,3 +88,15 @@ def get_host_counts():
     num_down = Hosts.query.filter(Hosts.status == 'Down').count()
 
     return json.dumps({'total_hosts': total, 'available_hosts': num_up, 'unavailable_hosts': num_down})
+
+
+@api.route('/deleteAllHosts', methods=['DELETE'])
+def delete_all_hosts():
+    '''Deletes all hosts'''
+    Hosts.query.delete()
+    HostAlerts.query.delete()
+    PollHistory.query.delete()
+
+    db.session.commit()
+
+    return json.dumps({'status': 'success'})

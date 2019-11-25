@@ -73,7 +73,7 @@ def poll_host(host, new_host=False, count=1):
     hostname = None
 
     if platform.system().lower() == 'windows':
-        command = ['ping', '-n', str(count), '-w', '2000', host]
+        command = ['ping', '-n', str(count), '-w', '500', host]
     else:
         command = ['ping', '-c', str(count), host]
 
@@ -84,7 +84,7 @@ def poll_host(host, new_host=False, count=1):
     )
 
     if new_host:
-        hostname = get_hostname
+        hostname = get_hostname(host)
 
     return ('Up' if response == 0 else 'Down', time.strftime('%Y-%m-%d %T'), hostname)
 
