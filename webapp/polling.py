@@ -8,11 +8,12 @@ import time
 import json
 
 from multiprocessing.pool import ThreadPool
+from datetime import date, timedelta
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import app, db, scheduler, log, config
 from webapp.database import Hosts, PollHistory, HostAlerts
-from webapp.api import get_all_hosts, get_host
+from webapp.api import get_all_hosts, get_host, get_polling_config, get_poll_history
 
 
 def poll_host(host, new_host=False, count=1):
@@ -45,6 +46,11 @@ def update_poll_scheduler(poll_interval):
         pass
 
     scheduler.add_job(id='Poll Hosts', func=_poll_hosts_threaded, trigger='interval', seconds=int(poll_interval), max_instances=1)
+
+
+def add_poll_history_cleanup_cron():
+    '''Adds crong job for poll history cleanup'''
+    scheduler.add_job(id='Poll History Cleanup', func=_poll_history_cleanup_task, trigger='cron', hour='0', minute='30')
 
 
 def get_hostname(ip_address):
@@ -119,3 +125,21 @@ def _poll_host_task(host_id):
             )
 
     return host_info, new_poll_history, host_alert
+
+
+def _poll_history_cleanup_task():
+    log.debug('Starting poll history cleanup')
+    s = time.perf_counter()
+
+    with app.app_context():
+        retention_days = json.loads(get_polling_config())['history_truncate_days']
+        current_date = date.today()
+
+        # Delete poll history where date_created < today - retention_days
+        PollHistory.query.filter(
+            PollHistory.date_created < (current_date - timedelta(days=retention_days))
+        ).delete()
+
+        db.session.commit()
+
+    log.debug("Poll history cleanup finished executing in {} seconds.".format(time.perf_counter() - s))

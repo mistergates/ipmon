@@ -15,9 +15,10 @@ config = {
     'Database_Path': os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'database',
-        'sqlite.db'
+        'ipmon.db'
     ),
     'Web_Themes': {
+        'Darkly (Dark/Blue)': '/static/css/darkly.min.css',
         'Cyborg (Dark/Blue)': '/static/css/cyborg.min.css',
         'Slate (Dark)': '/static/css/slate.min.css',
         'Simplix (Light/Red)': '/static/css/simplix.min.css',

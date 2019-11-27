@@ -13,7 +13,7 @@ from webapp import db, app, scheduler
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
 from webapp.database import Polling, WebThemes
 from webapp.forms import PollingConfigForm
-from webapp.polling import update_poll_scheduler
+from webapp.polling import update_poll_scheduler, add_poll_history_cleanup_cron
 from webapp.alerts import update_host_status_alert_schedule
 from wtforms.validators import NumberRange
 
@@ -27,6 +27,7 @@ def webapp_init():
     # Register scheduler jobs
     update_poll_scheduler(int(json.loads(get_polling_config())['poll_interval']))
     update_host_status_alert_schedule(int(json.loads(get_polling_config())['poll_interval']) / 2)
+    add_poll_history_cleanup_cron()
     atexit.register(scheduler.shutdown)
 
     # Register error handling
