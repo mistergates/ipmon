@@ -75,15 +75,21 @@ def get_alerts_enabled():
 @api.route('/smtpConfigured', methods=['GET'])
 def get_smtp_configured():
     '''Get whether SMTP configured or not'''
-    if Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first()):
+    config = json.loads(get_smtp_config())
+    if config['smtp_server'] and config['smtp_port'] and config['smtp_sender']:
         return json.dumps({'smtp_configured': True})
     return json.dumps({'smtp_configured': False})
+
+
+@api.route('/smtpConfig', methods=['GET'])
+def get_smtp_config():
+    '''Get SMTP config'''
+    return json.dumps(Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first()))
 
 
 @api.route('/webThemes', methods=['GET'])
 def get_web_themes():
     '''Get all web themese'''
-
     return json.dumps(Schemas.WEB_THEMES_SCHEMA.dump(WebThemes.query.all()))
 
 

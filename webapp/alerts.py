@@ -6,7 +6,7 @@ import json
 from multiprocessing.pool import ThreadPool
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, scheduler, app, config
+from webapp import db, scheduler, app, config, log
 from webapp.database import Users, Hosts, HostAlerts, Schemas
 from webapp.api import get_alerts_enabled, get_smtp_configured
 from webapp.smtp import send_smtp_message
@@ -24,9 +24,6 @@ def update_host_status_alert_schedule(alert_interval):
 
 
 def _host_status_alerts_threaded():
-    pool = ThreadPool(config['Max_Threads'])
-    threads = []
-
     with app.app_context():
         alerts_enabled = json.loads(get_alerts_enabled())['alerts_enabled']
         smtp_configured = json.loads(get_smtp_configured())['smtp_configured']
@@ -36,21 +33,30 @@ def _host_status_alerts_threaded():
             alert.alert_cleared = True
 
         if smtp_configured and alerts_enabled:
+            pool = ThreadPool(config['Max_Threads'])
+            threads = []
+
             message = ''
             for alert in alerts:
                 threads.append(
                     pool.apply_async(_get_alert_status_message, (alert,))
                 )
 
+            pool.close()
+            pool.join()
+
             for thread in threads:
                 message += thread.get()
 
             if message:
-                send_smtp_message(
-                    recipient=Schemas.USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
-                    subject='IPMON - Host Status Change Alert',
-                    message=message
-                )
+                try:
+                    send_smtp_message(
+                        recipient=Schemas.USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
+                        subject='IPMON - Host Status Change Alert',
+                        message=message
+                    )
+                except Exception as exc:
+                    log.error('Failed to send host status change alert email: {}'.format(exc))
 
         db.session.commit()
 

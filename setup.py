@@ -79,10 +79,9 @@ def create_admin_user_interactive():
         else:
             print('\n!! Passwords did not match !!\n')
 
-    # with app.app_context():
     admin_user = Users(email=email, username=username, password=sha256_crypt.hash(password))
     db.session.add(admin_user)
-        # db.session.commit()
+
 
 
 
@@ -90,24 +89,24 @@ def set_poll_interval_interactive():
     '''Set the poll interval interactively'''
     poll_interval = int(input('\n  Poll interval in seconds (time between polling servers): ').strip())
     history_truncate_days = int(input('\n  Number of days to keep poll history: ').strip())
-    # with app.app_context():
+
     poll = Polling(poll_interval=poll_interval, history_truncate_days=history_truncate_days)
     db.session.add(poll)
-        # db.session.commit()
+
 
 
 def configure_smtp_server_interactive():
     '''Set the poll interval interactively'''
+    smtp_server = ''
+    smtp_port = ''
+    smtp_sender = ''
     if 'y' in input('\nWould you like to connfigure a SMTP server for email alerts? (y/n): ').strip().lower():
-
         smtp_server = input('  SMTP Server Address: ').strip()
         smtp_port = int(input('  SMTP Port: '))
         smtp_sender = input('  SMTP Sender Address: ').strip()
 
-        # with app.app_context():
-        smtp = SmtpServer(smtp_server=smtp_server, smtp_port=smtp_port, smtp_sender=smtp_sender)
-        db.session.add(smtp)
-            # db.session.commit()
+    smtp = SmtpServer(smtp_server=smtp_server, smtp_port=smtp_port, smtp_sender=smtp_sender)
+    db.session.add(smtp)
 
 
 def failure_cleanup(error):

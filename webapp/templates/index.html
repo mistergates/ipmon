@@ -2,38 +2,40 @@
 
 {% block content %}
 
-<div class="container has-text-centered">
-  <nav class="level">
-    <div class="level-item">
-      <div>
-        <p class="heading">Total Hosts</p>
-        <p class="title" id="total-hosts"></p>
-      </div>
-    </div>
-    <div class="level-item has-text-centered">
-      <div>
-        <p class="heading">Available Hosts</p>
-        <p class="title has-text-success" id="available-hosts"></p>
-      </div>
-    </div>
-    <div class="level-item has-text-centered">
-      <div>
-        <p class="heading">Unavailable Hosts</p>
-        <p class="title has-text-danger" id="unavailable-hosts"></p>
-      </div>
-    </div>
-  </nav>
-</div>
-
-<section class="hero-body" id="expand-me">
+<section id="expand-me">
+  <!-- Expand Button -->
   <button class="button is-small is-pulled-right" id="expand" onClick="fullscreenToggle();">
     <span class="icon is-small">
       <i class="fa fa-window-maximize" id="expander"></i>
     </span>
   </button>
-  <table class="table is-striped" id="ip-status">
-    <!-- Data Table -->
-  </table>
+
+  <!-- Host Counts -->
+  <div class="box has-text-centered">
+    <nav class="level">
+      <div class="level-item">
+        <div>
+          <p class="heading">Total Hosts</p>
+          <p class="title" id="total-hosts"></p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Available Hosts</p>
+          <p class="title has-text-success" id="available-hosts"></p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Unavailable Hosts</p>
+          <p class="title has-text-danger" id="unavailable-hosts"></p>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Data Table -->
+  <table class="table is-striped" id="ip-status"></table>
 </section>
 
 <script>
@@ -64,6 +66,7 @@
           data: json.data,
           columns: json.columns,
           searching: false,
+          stateSave: true,
           'rowCallback': function (row, data, index) {
             var status_col = $(row).find('td:eq(3)')
             var last_poll_col = $(row).find('td:eq(2)')
@@ -82,7 +85,7 @@
             // Add link to load poll history for host
             var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
             if (!$(last_poll_col).has("span").length) {
-              last_poll_col.append('<span class="icon has-text-info" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
+              last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
             }
 
           }

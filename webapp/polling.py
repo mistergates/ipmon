@@ -61,10 +61,10 @@ def _poll_hosts_threaded():
     log.debug('Starting host polling')
     s = time.perf_counter()
 
-    pool = ThreadPool(config['Max_Threads'])
-    threads = []
-
     with app.app_context():
+        pool = ThreadPool(config['Max_Threads'])
+        threads = []
+
         for host in json.loads(get_all_hosts()):
             threads.append(
                 pool.apply_async(_poll_host_task, (host['id'],))
@@ -84,8 +84,7 @@ def _poll_hosts_threaded():
                 db.session.add(host_alert)
         db.session.commit()
 
-    elapsed = time.perf_counter() - s
-    log.debug("Host polling finished executing in {} seconds.".format(elapsed))
+    log.debug("Host polling finished executing in {} seconds.".format(time.perf_counter() - s))
 
 
 def _poll_host_task(host_id):

@@ -15,6 +15,7 @@ from webapp.database import Polling, WebThemes
 from webapp.forms import PollingConfigForm
 from webapp.polling import update_poll_scheduler
 from webapp.alerts import update_host_status_alert_schedule
+from wtforms.validators import NumberRange
 
 main = Blueprint('main', __name__)
 
@@ -25,7 +26,7 @@ main = Blueprint('main', __name__)
 def webapp_init():
     # Register scheduler jobs
     update_poll_scheduler(int(json.loads(get_polling_config())['poll_interval']))
-    update_host_status_alert_schedule(10)
+    update_host_status_alert_schedule(int(json.loads(get_polling_config())['poll_interval']) / 2)
     atexit.register(scheduler.shutdown)
 
     # Register error handling
@@ -82,24 +83,29 @@ def configure_polling():
         polling_config = json.loads(get_polling_config())
         return render_template('pollingConfig.html', polling_config=polling_config, form=form)
     elif request.method == 'POST':
-        results = request.form.to_dict()
+        if form.validate_on_submit():
 
-        polling_config = Polling.query.filter_by(id=1).first()
-        try:
-            if results['polling_interval']:
-                polling_config.poll_interval = int(results['polling_interval'])
-            if results['history_truncate_days']:
-                polling_config.history_truncate_days = int(results['history_truncate_days'])
-            db.session.commit()
-        except Exception:
-            flash('Failed to update polling interval', 'danger')
-            return redirect(url_for('main.configure_polling'))
+            polling_config = Polling.query.first()
+            try:
+                if form.interval.data:
+                    polling_config.poll_interval = int(form.interval.data)
+                if form.retention_days.data:
+                    polling_config.history_truncate_days = int(form.retention_days.data)
+                db.session.commit()
+            except Exception:
+                flash('Failed to update polling interval', 'danger')
+                return redirect(url_for('main.configure_polling'))
 
-        # Update scheduled polling interval
-        if results['polling_interval']:
-            update_poll_scheduler(results['polling_interval'])
+            # Update scheduled polling interval
+            if form.interval.data:
+                update_poll_scheduler(form.interval.data)
 
-        flash('Successfully updated polling interval', 'success')
+            flash('Successfully updated polling interval', 'success')
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
+
         return redirect(url_for('main.configure_polling'))
 
 

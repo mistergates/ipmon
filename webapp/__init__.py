@@ -4,6 +4,7 @@ import logging
 import flask_login
 import tempfile
 import time
+import uuid
 
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template
@@ -17,17 +18,17 @@ config = {
         'sqlite.db'
     ),
     'Web_Themes': {
-        'Dark': '/static/css/slate.min.css',
-        'Light': '/static/css/simplix.min.css',
-        'Classic': '/static/css/flastly.min.css'
+        'Cyborg (Dark/Blue)': '/static/css/cyborg.min.css',
+        'Slate (Dark)': '/static/css/slate.min.css',
+        'Simplix (Light/Red)': '/static/css/simplix.min.css',
+        'Flatly (Light/Blue)': '/static/css/flatly.min.css'
     },
-    'Max_Threads': 100,
-    'Alerts_Poll': 10
+    'Max_Threads': 100
 }
 
 # Web App
 app = Flask(__name__)
-app.secret_key = os.urandom(12)
+app.secret_key = str(uuid.UUID(int=uuid.getnode()))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(config['Database_Path'])
 

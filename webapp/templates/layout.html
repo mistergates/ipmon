@@ -155,7 +155,7 @@
                 <div class="container">
                     <div class="navbar-brand">
                         <a href="{{ url_for('main.index') }}" class="navbar-item is-size-3 has-text-white">
-                            <i class="fas fa-network-wired has-text-success"></i>&nbsp;IPMON
+                            <i class="fas fa-network-wired"></i>&nbsp;IPMON
                         </a>
                         <span class="navbar-burger burger" data-target="navbarMenuHeroA">
                             <span></span>
@@ -172,10 +172,10 @@
                                 </a>
                                 <div class="navbar-dropdown">
                                     <a href="{{ url_for('hosts.add_hosts') }}" class="navbar-item">
-                                        Add Host
+                                        Add Hosts
                                     </a>
                                     <a href="{{ url_for('hosts.update_hosts') }}" class="navbar-item">
-                                        Update Host
+                                        Update Hosts
                                     </a>
                                 </div>
                             </div>
@@ -187,7 +187,7 @@
                                     <a href="{{ url_for('main.configure_polling') }}" class="navbar-item">
                                         Polling
                                     </a>
-                                    <a href="{{ url_for('smtp.smtp_config') }}" class="navbar-item">
+                                    <a href="{{ url_for('smtp.configure_smtp') }}" class="navbar-item">
                                         SMTP
                                     </a>
                                     <a  href="{{ url_for('main.set_theme') }}" class="navbar-item">

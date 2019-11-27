@@ -4,7 +4,7 @@ import sys
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField, TextAreaField, SelectField
-from wtforms.validators import DataRequired, IPAddress, Email
+from wtforms.validators import DataRequired, IPAddress, Email, NumberRange
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import config
@@ -18,9 +18,9 @@ class LoginForm(FlaskForm):
 
 
 class SmtpConfigForm(FlaskForm):
-    server = StringField('Username', validators=[DataRequired(message="Server required")])
-    port = IntegerField('Port', validators=[DataRequired(message="Port required")])
-    sender_address = StringField('Sender Address', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
+    server = StringField('Server', validators=[DataRequired(message="Server required")])
+    port = IntegerField('Port', validators=[DataRequired(message="Port required"), NumberRange(min=0, message="Invalid port number")])
+    sender = StringField('Sender Address', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
     submit = SubmitField('Update')
 
 
@@ -36,11 +36,11 @@ class UpdateHostForm(FlaskForm):
 
 
 class SelectThemeForm(FlaskForm):
-    theme = IntegerField('Theme', config['Web_Themes'].items())
+    theme = SelectField('Theme', config['Web_Themes'].items())
     submit = SubmitField('Update')
 
 
 class PollingConfigForm(FlaskForm):
-    interval = IntegerField('Polling Interval')
-    retention_days = IntegerField('Poll History Retention Days')
+    interval = StringField('Polling Interval')
+    retention_days = StringField('Poll History Retention Days')
     submit = SubmitField('Update')
