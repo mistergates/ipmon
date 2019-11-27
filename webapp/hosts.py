@@ -3,16 +3,15 @@ import os
 import sys
 import flask_login
 import json
-import re
 
 from multiprocessing.pool import ThreadPool
-from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp.database import Hosts, PollHistory, HostAlerts
-from webapp import db, app, config
-from webapp.api import get_web_themes, get_polling_config, get_active_theme, get_hosts
-from webapp.polling import poll_host, update_poll_scheduler, get_hostname
+from webapp import db, config, log
+from webapp.api import get_all_hosts
+from webapp.polling import poll_host
 from webapp.forms import AddHostsForm, UpdateHostForm
 from wtforms.validators import IPAddress
 
@@ -27,7 +26,7 @@ def add_hosts():
         return render_template('addHosts.html', form=form)
     elif request.method == 'POST':
         if form.validate_on_submit():
-            pool = ThreadPool(config['Pool_Size'])
+            pool = ThreadPool(config['Max_Threads'])
             threads = []
             for ip_address in form.ip_address.data.split('\n'):
                 ip_address = ip_address.strip()
@@ -52,9 +51,10 @@ def add_hosts():
                 try:
                     # add the new host to the database
                     db.session.add(new_host)
-                    flash(u'Successfully added {} ({})'.format(ip_address, new_host.hostname), 'success')
+                    flash(u'Successfully added {} ({})'.format(new_host.ip_address, new_host.hostname), 'success')
                 except Exception as exc:
-                    flash(u'Failed to add {}: {}'.format(ip_address, exc), 'danger')
+                    flash(u'Failed to add {}'.format(new_host.ip_address), 'danger')
+                    log.error('Failed to add {} to database. Exception: {}'.format(new_host, exc))
                     continue
 
             db.session.commit()
@@ -69,7 +69,6 @@ def add_hosts():
 def _add_hosts_threaded(ip_address):
     status, current_time, hostname = poll_host(ip_address, new_host=True)
 
-
     # create new host database object
     new_host = Hosts(
         ip_address=ip_address,
@@ -77,14 +76,6 @@ def _add_hosts_threaded(ip_address):
         status=status,
         last_poll=current_time
     )
-
-    # try:
-    #     # add the new host to the database
-    #     db.session.add(new_host)
-    #     flash(u'Successfully added {} ({})'.format(ip_address, hostname), 'success')
-    # except Exception:
-    #     flash(u'Failed to add {}'.format(hostname), 'danger')
-    #     # continue
 
     return new_host
 
@@ -94,7 +85,7 @@ def _add_hosts_threaded(ip_address):
 def update_hosts():
     '''Update Hosts'''
     if request.method == 'GET':
-        return render_template('updateHosts.html', hosts=json.loads(get_hosts()))
+        return render_template('updateHosts.html', hosts=json.loads(get_all_hosts()))
     elif request.method == 'POST':
         results = request.form.to_dict()
         host =  Hosts.query.filter_by(id=int(results['id'])).first()

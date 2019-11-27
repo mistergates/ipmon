@@ -1,20 +1,37 @@
 '''Main Web Application'''
 import os
 import sys
-import flask_login
 import json
-import re
+import atexit
 
+import flask_login
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
+from werkzeug.exceptions import HTTPException
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, app
-from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, Schemas
+from webapp import db, app, scheduler
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
-from webapp.polling import poll_host, update_poll_scheduler
+from webapp.database import Polling, WebThemes
 from webapp.forms import PollingConfigForm
+from webapp.polling import update_poll_scheduler
+from webapp.alerts import update_host_status_alert_schedule
 
 main = Blueprint('main', __name__)
+
+#####################
+# Schedule Jobs #####
+#####################
+@app.before_first_request
+def webapp_init():
+    # Register scheduler jobs
+    update_poll_scheduler(int(json.loads(get_polling_config())['poll_interval']))
+    update_host_status_alert_schedule(10)
+    atexit.register(scheduler.shutdown)
+
+    # Register error handling
+    for cls in HTTPException.__subclasses__():
+        app.register_error_handler(cls, handle_error)
+
 
 #####################
 # App Routes ########
@@ -28,7 +45,8 @@ def favicon():
 @main.route('/')
 def index():
     '''Index page'''
-    interval = int(json.loads(get_polling_config())['poll_interval']) * 1000
+    # interval = int(json.loads(get_polling_config())['poll_interval']) * 1000
+    interval = int(10) * 1000
     return render_template('index.html', poll_interval=interval)
 
 
@@ -83,6 +101,19 @@ def configure_polling():
 
         flash('Successfully updated polling interval', 'success')
         return redirect(url_for('main.configure_polling'))
+
+
+##########################
+# Functions ##############
+##########################
+def handle_error(error):
+    '''Global Error Handler'''
+    code = 500
+    desc = 'Internal Server Error'
+    if isinstance(error, HTTPException):
+        code = error.code
+        desc = error.description
+    return render_template('error.html', code=code, desc=desc)
 
 
 ##########################

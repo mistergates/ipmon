@@ -91,7 +91,7 @@
             await modalAddContent(title, body);
 
             await $.ajax({
-                url: '/getHostAlerts',
+                url: '{{ url_for("api.get_all_host_alerts") }}',
                 type: 'GET',
                 success: function (response) {
                     var json_data = JSON.parse(response)
@@ -208,7 +208,7 @@
                             </a>
                             {% else %}
                             <a href="{{ url_for('auth.login') }}" class="navbar-item">
-                                Log in
+                                <i class="fas fa-user"></i>&nbsp;&nbsp;Log in
                             </a>
                             {% endif %}
                         </div>

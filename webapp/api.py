@@ -15,72 +15,85 @@ api = Blueprint('api', __name__)
 #####################
 # API Routes ########
 #####################
-@api.route('/getHosts', methods=['GET'])
-def get_hosts():
+@api.route('/hosts', methods=['GET'])
+def get_all_hosts():
     '''Get all hosts'''
     return json.dumps(Schemas.HOSTS_SCHEMA.dump(Hosts.query.all()))
 
 
-@api.route('/getHosts/<id>', methods=['GET'])
+@api.route('/hosts/<id>', methods=['GET'])
 def get_host(_id):
     '''Get host by ID'''
     return json.dumps(Schemas.HOST_SCHEMA.dump(Hosts.query.filter_by(id=_id).first()))
 
 
-@api.route('/getHostAlerts', methods=['GET'])
+@api.route('/hostsDataTable', methods=['GET'])
+def get_all_hosts_datatable():
+    '''Get all hosts'''
+    data = {
+        "columns": [
+            { "data": "hostname", "title": "Hostname" },
+            { "data": "ip_address", "title": "IP Address" },
+            { "data": "last_poll", "title": "Last Poll" },
+            { "data": "status", "title": "Status" }
+        ],
+        "data": Schemas.HOSTS_SCHEMA.dump(Hosts.query.all())
+    }
+    return json.dumps(data)
+
+@api.route('/hostAlerts', methods=['GET'])
 def get_all_host_alerts():
     '''Get new host alerts'''
     return json.dumps(Schemas.HOST_ALERTS_SCHEMA.dump(HostAlerts.query.join(Hosts).all()))
 
 
-@api.route('/getNewHostAlerts', methods=['GET'])
+@api.route('/hostAlerts/new', methods=['GET'])
 def get_new_host_alerts():
     '''Get new host alerts'''
     return json.dumps(Schemas.HOST_ALERTS_SCHEMA.dump(HostAlerts.query.filter_by(alert_cleared=False)))
 
 
-@api.route('/getPollingConfig', methods=['GET'])
+@api.route('/pollingConfig', methods=['GET'])
 def get_polling_config():
     '''Get polling config'''
     return json.dumps(Schemas.POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
 
 
-@api.route('/getPollHistory/<host_id>', methods=['GET'])
+@api.route('/pollHistory/<host_id>', methods=['GET'])
 def get_poll_history(host_id):
     '''Get poll history for a single host'''
     return json.dumps(Schemas.POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
 
 
-@api.route('/getAlertsEnabled', methods=['GET'])
+@api.route('/alertsEnabled', methods=['GET'])
 def get_alerts_enabled():
     '''Get whether alerts are enabled or not'''
     status = Schemas.USER_SCHEMA.dump(Users.query.first())['alerts_enabled']
     return json.dumps({'alerts_enabled': status})
 
 
-@api.route('/getSmtpConfigured', methods=['GET'])
+@api.route('/smtpConfigured', methods=['GET'])
 def get_smtp_configured():
     '''Get whether SMTP configured or not'''
     if Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first()):
         return json.dumps({'smtp_configured': True})
-    
     return json.dumps({'smtp_configured': False})
 
 
-@api.route('/getWebThemes', methods=['GET'])
+@api.route('/webThemes', methods=['GET'])
 def get_web_themes():
     '''Get all web themese'''
 
     return json.dumps(Schemas.WEB_THEMES_SCHEMA.dump(WebThemes.query.all()))
 
 
-@api.route('/getActiveTheme', methods=['GET'])
+@api.route('/webThemes/active', methods=['GET'])
 def get_active_theme():
     '''Get active theme'''
     return json.dumps(Schemas.WEB_THEME_SCHEMA.dump(WebThemes.query.filter_by(active=True).first()))
 
 
-@api.route('/getHostCounts', methods=['GET'])
+@api.route('/hostCounts', methods=['GET'])
 def get_host_counts():
     '''Get host total, available, unavailable host counts'''
     total = Hosts.query.count()
@@ -90,7 +103,7 @@ def get_host_counts():
     return json.dumps({'total_hosts': total, 'available_hosts': num_up, 'unavailable_hosts': num_down})
 
 
-@api.route('/deleteAllHosts', methods=['DELETE'])
+@api.route('/hosts/all', methods=['DELETE'])
 def delete_all_hosts():
     '''Deletes all hosts'''
     Hosts.query.delete()

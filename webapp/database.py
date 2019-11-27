@@ -49,7 +49,7 @@ class HostsSchema(Schema):
     '''Hosts Schema'''
     class Meta:
         '''Meta'''
-        fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll', 'status_change_alert')
+        fields = ('id', 'ip_address', 'hostname', 'status', 'last_poll', 'status_change_alert', 'previous_status')
 
 
 class PollHistory(db.Model):

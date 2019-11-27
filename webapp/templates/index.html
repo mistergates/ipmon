@@ -26,7 +26,7 @@
 </div>
 
 <section class="hero-body" id="expand-me">
-  <button class="button is-small is-pulled-right" id="expand">
+  <button class="button is-small is-pulled-right" id="expand" onClick="fullscreenToggle();">
     <span class="icon is-small">
       <i class="fa fa-window-maximize" id="expander"></i>
     </span>
@@ -40,7 +40,7 @@
   // Update Datatable - Called on interval
   async function updateTable() {
     await $.ajax({
-      url: '/getHosts',
+      url: '{{ url_for("api.get_all_hosts") }}',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -94,7 +94,7 @@
   // Updates Total, Active and Inactive host counts
   async function updateHostCounts() {
     await $.ajax({
-      url: '/getHostCounts',
+      url: '{{ url_for("api.get_host_counts") }}',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -110,7 +110,7 @@
     await modalClear();
     await modalAddContent('Poll History', '<p class="title is-4">' + hostname + '</p><div class="table-container"><table class="table is-striped" id="modal-table" style="width:100%"></table></div>');
     await $.ajax({
-      url: '/getPollHistory/' + id,
+      url: '/pollHistory/' + id,
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -156,11 +156,6 @@
     // Update datatable and host counts at interval of {{ poll_interval }} seconds
     setInterval(updateTable, {{ poll_interval }});
     setInterval(updateHostCounts, {{ poll_interval }});
-
-    // Expand body listener
-    $("#expand").click(function () {
-      fullscreenToggle();
-    })
   });
 
 </script>
