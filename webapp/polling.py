@@ -23,7 +23,7 @@ def poll_host(host, new_host=False, count=1):
     if platform.system().lower() == 'windows':
         command = ['ping', '-n', str(count), '-w', '1000', host]
     else:
-        command = ['ping', '-c', str(count), host]
+        command = ['ping', '-c', str(count), '-W', '1', host]
 
     response = subprocess.call(
         command,

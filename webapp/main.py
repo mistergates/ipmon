@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import db, app, scheduler
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
 from webapp.database import Polling, WebThemes
-from webapp.forms import PollingConfigForm
+from webapp.forms import PollingConfigForm, UpdatePasswordForm
 from webapp.polling import update_poll_scheduler, add_poll_history_cleanup_cron
 from webapp.alerts import update_host_status_alert_schedule
 from wtforms.validators import NumberRange
@@ -50,6 +50,14 @@ def index():
     # interval = int(json.loads(get_polling_config())['poll_interval']) * 1000
     interval = int(10) * 1000
     return render_template('index.html', poll_interval=interval)
+
+
+@main.route("/account")
+@flask_login.login_required
+def account():
+    '''User Account'''
+    password_form = UpdatePasswordForm()
+    return render_template('account.html', password_form=password_form)
 
 
 @main.route('/setTheme', methods=['GET', 'POST'])

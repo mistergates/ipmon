@@ -6,6 +6,7 @@ import tempfile
 import time
 import uuid
 
+from password_strength import PasswordPolicy
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -18,11 +19,16 @@ config = {
         'ipmon.db'
     ),
     'Web_Themes': {
-        'Darkly (Dark/Blue)': '/static/css/darkly.min.css',
-        'Cyborg (Dark/Blue)': '/static/css/cyborg.min.css',
-        'Slate (Dark)': '/static/css/slate.min.css',
+        'Darkly (Dark/Dark Blue)': '/static/css/darkly.min.css',
+        'Cyborg (Dark/Light Blue)': '/static/css/cyborg.min.css',
+        'Slate (Dark/Grey)': '/static/css/slate.min.css',
         'Simplix (Light/Red)': '/static/css/simplix.min.css',
-        'Flatly (Light/Blue)': '/static/css/flatly.min.css'
+        'Flatly (Light/Dark Blue)': '/static/css/flatly.min.css'
+    },
+    'Password_Policy': {
+        'Length': 8,
+        'Uppercase': 1,
+        'Nonletters': 2
     },
     'Max_Threads': 100
 }

@@ -203,7 +203,7 @@
                                 <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;Alerts
                             </a>
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.account') }}" class="navbar-item">
+                            <a href="{{ url_for('main.account') }}" class="navbar-item">
                                 <i class="fas fa-user"></i>&nbsp;&nbsp;{{current_user.id}}
                             </a>
                             {% else %}
@@ -260,6 +260,9 @@
                     </button>
                 </a>
             </div>
+            <a href="https://bulma.io" target="_blank">
+                <img src="/static/images/made-with-bulma.png" alt="Made with Bulma" width="128" height="24">
+              </a>
         </div>
     </footer>
 

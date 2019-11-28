@@ -17,6 +17,18 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 
+class UpdatePasswordForm(FlaskForm):
+    desc = 'Password Policy: Minimum Length ({}), Minimum Uppercase ({}), Minimum Non-Letters ({}).'.format(
+        config['Password_Policy']['Length'],
+        config['Password_Policy']['Uppercase'],
+        config['Password_Policy']['Nonletters']
+    )
+    current_password = PasswordField('Current Password', validators=[DataRequired(message="Current password required")])
+    new_password = PasswordField('New Password', description=desc, validators=[DataRequired(message="New password required")])
+    verify_password = PasswordField('Verify Password', validators=[DataRequired(message="Password verification required")])
+    submit = SubmitField('Update')
+
+
 class SmtpConfigForm(FlaskForm):
     server = StringField('Server', validators=[DataRequired(message="Server required")])
     port = IntegerField('Port', validators=[DataRequired(message="Port required"), NumberRange(min=0, message="Invalid port number")])

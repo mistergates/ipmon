@@ -6,6 +6,7 @@
 <div class="column is-8 is-offset-2">
     <div class="box">
         <p class="title">Current SMTP Confugration</p>
+        {% if smtp['smtp_server'] %}
         <table class="table is-striped">
             <tr>
                 <th>SMTP Server</th>
@@ -19,6 +20,9 @@
                 <td>{{ smtp['smtp_sender'] }}</td>
             </tr>
         </table>
+        {% else %}
+        <p>SMTP not configured</p>
+        {% endif %}
         <form method="POST" action="{{ url_for('smtp.configure_smtp') }}" novalidate></form>
     </div>
 
@@ -30,7 +34,6 @@
                 <div class="control">
                     {{ form.server.label(class_="label") }}
                     {{ form.server(class_="input is-large") }}
-                    <p class="help">The SMTP server hostname/IP address</p>
                 </div>
             </div>
 
@@ -38,7 +41,6 @@
                 <div class="control">
                     {{ form.port.label(class_="label") }}
                     {{ form.port(class_="input is-large") }}
-                    <p class="help">The SMTP port number</p>
                 </div>
             </div>
 
@@ -46,7 +48,6 @@
                 <div class="control">
                     {{ form.sender.label(class_="label") }}
                     {{ form.sender(class_="input is-large") }}
-                    <p class="help">The SMTP sender email address</p>
                 </div>
             </div>
 
