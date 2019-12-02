@@ -23,7 +23,7 @@
             <div class="field">
                 <div class="control">
                     {{ form.interval.label(class_="label") }}
-                    {{ form.interval(class_="input is-large") }}
+                    {{ form.interval(class_="input is-large", id="polling-interval") }}
                     <p class="help">The amount of time in seconds between polling hosts</p>
                 </div>
                 
@@ -31,7 +31,7 @@
             <div class="field">
                 <div class="control">
                     {{ form.retention_days.label(class_="label") }}
-                    {{ form.retention_days(class_="input is-large") }}
+                    {{ form.retention_days(class_="input is-large", id="history-retention") }}
                     <p class="help">The number of days to keep poll history logs for each host</p>
                 </div>
 
@@ -43,5 +43,12 @@
     </div>
 </div>
 
+<script>
+    // Update placeholders to current polling config values
+    $(document).ready(function () {
+        $("#polling-interval").attr("placeholder", "{{ polling_config['poll_interval'] }}")
+        $("#history-retention").attr("placeholder", "{{ polling_config['history_truncate_days'] }}")
+    })
+</script>
 
 {% endblock %}

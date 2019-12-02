@@ -33,21 +33,21 @@
             <div class="field">
                 <div class="control">
                     {{ form.server.label(class_="label") }}
-                    {{ form.server(class_="input is-large") }}
+                    {{ form.server(class_="input is-large", id="smtp-server") }}
                 </div>
             </div>
 
             <div class="field">
                 <div class="control">
                     {{ form.port.label(class_="label") }}
-                    {{ form.port(class_="input is-large") }}
+                    {{ form.port(class_="input is-large", id="smtp-port") }}
                 </div>
             </div>
 
             <div class="field">
                 <div class="control">
                     {{ form.sender.label(class_="label") }}
-                    {{ form.sender(class_="input is-large") }}
+                    {{ form.sender(class_="input is-large", id="smtp-sender") }}
                 </div>
             </div>
 
@@ -81,5 +81,16 @@
 <div class="column is-6 is-offset-3">
     
 </div>
+
+{% if smtp['smtp_server'] %}
+<script>
+    // Update placeholders to current SMTP config values
+    $(document).ready(function () {
+        $("#smtp-server").attr("placeholder", "{{ smtp['smtp_server'] }}")
+        $("#smtp-port").attr("placeholder", "{{ smtp['smtp_port'] }}")
+        $("#smtp-sender").attr("placeholder", "{{ smtp['smtp_sender'] }}")
+    })
+</script>
+{% endif %}
 
 {% endblock %}

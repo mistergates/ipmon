@@ -41,12 +41,6 @@ class AddHostsForm(FlaskForm):
     submit = SubmitField('Add')
 
 
-class UpdateHostForm(FlaskForm):
-    hostname = StringField('Hostname')
-    ip_address = TextAreaField('IP Addresses', validators=[IPAddress(ipv6=True, message="Invalid IP address")])
-    submit = SubmitField('Update')
-
-
 class SelectThemeForm(FlaskForm):
     theme = SelectField('Theme', config['Web_Themes'].items())
     submit = SubmitField('Update')

@@ -12,11 +12,14 @@ from webapp.database import Hosts, PollHistory, HostAlerts
 from webapp import db, config, log
 from webapp.api import get_all_hosts
 from webapp.polling import poll_host
-from webapp.forms import AddHostsForm, UpdateHostForm
+from webapp.forms import AddHostsForm
 from wtforms.validators import IPAddress
 
 hosts = Blueprint('hosts', __name__)
 
+######################
+# Routes #############
+######################
 @hosts.route('/addHosts', methods=['GET', 'POST'])
 @flask_login.login_required
 def add_hosts():
@@ -66,20 +69,6 @@ def add_hosts():
         return redirect(url_for('hosts.add_hosts'))
 
 
-def _add_hosts_threaded(ip_address):
-    status, current_time, hostname = poll_host(ip_address, new_host=True)
-
-    # create new host database object
-    new_host = Hosts(
-        ip_address=ip_address,
-        hostname=hostname,
-        status=status,
-        last_poll=current_time
-    )
-
-    return new_host
-
-
 @hosts.route('/updateHosts', methods=['GET', 'POST'])
 @flask_login.login_required
 def update_hosts():
@@ -119,3 +108,20 @@ def delete_host():
             flash('Failed to delete {}: {}'.format(results['hostname'], exc), 'danger')
 
         return redirect(url_for('hosts.update_hosts'))
+
+
+######################
+# Private Functions ##
+######################
+def _add_hosts_threaded(ip_address):
+    status, current_time, hostname = poll_host(ip_address, new_host=True)
+
+    # create new host database object
+    new_host = Hosts(
+        ip_address=ip_address,
+        hostname=hostname,
+        status=status,
+        last_poll=current_time
+    )
+
+    return new_host
