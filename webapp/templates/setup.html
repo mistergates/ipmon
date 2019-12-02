@@ -18,7 +18,7 @@
         </div>
     </section>
 
-    <form method="POST" action="{{ url_for('setup.setup') }}" novalidate>
+    <form method="POST" action="{{ url_for('setup.setup') }}" onsubmit="showLoader();" novalidate>
         {{ form.hidden_tag() }}
 
         <!-- Admin Account -->
@@ -45,6 +45,7 @@
                     {{ form.password.label(class_="label") }}
                     {{ form.password(class_="input is-medium") }}
                 </div>
+                <p class="help">{{ form.password.description }}</p>
             </div>
             <div class="field">
                 <div class="control">
@@ -82,12 +83,16 @@
 
         <!-- SMTP -->
         <div class="box">
-            <p class="title">SMTP Configuration</p>
-            <div class="field">
+            <p class="title is=3">SMTP Configuration</p>
+            <p class="subtitle is=5">
+                SMTP configuration is optional. If SMTP is configured, alerts will be send to the admin account's email
+                address when hosts have a status change (down->up, up->down).
+            </p>
+            <!-- <div class="field">
                 <div class="control">
                     {{ form.enable_smtp() }} {{ form.enable_smtp.label(_class="checkbox") }}
                 </div>
-            </div>
+            </div> -->
             <div class="field">
                 <div class="control">
                     {{ form.smtp_server.label(class_="label") }}
