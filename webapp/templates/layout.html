@@ -163,6 +163,7 @@
                             <span></span>
                         </span>
                     </div>
+                    {% if database_configured() %}
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
                             {% if current_user.is_authenticated %}
@@ -213,6 +214,7 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
                 </div>
         </div>
         </div>

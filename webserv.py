@@ -14,6 +14,7 @@ from webapp.auth import auth as auth_blueprint
 from webapp.smtp import smtp as smtp_blueprint
 from webapp.api import api as api_blueprint
 from webapp.hosts import hosts as hosts_blueprint
+from webapp.setup import bp as setup_blueprint
 
 parser = argparse.ArgumentParser(description='Web Server Arguments')
 parser.add_argument('--host', type=str, default='0.0.0.0', help="Binds the server to this hostname/IP address")
@@ -22,15 +23,15 @@ parser.add_argument('--debug', action="store_true", default=False, help="Runs th
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    if not os.path.exists(config['Database_Path']):
-        raise Exception(
-            'Database does not exist. Run "python {}"'.format(
-                os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    'setup.py'
-                )
-            )
-        )
+    # if not os.path.exists(config['Database_Path']):
+    #     raise Exception(
+    #         'Database does not exist. Run "python {}"'.format(
+    #             os.path.join(
+    #                 os.path.dirname(os.path.realpath(__file__)),
+    #                 'setup.py'
+    #             )
+    #         )
+    #     )
 
     # Register blueprints
     app.register_blueprint(main_blueprint)
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     app.register_blueprint(smtp_blueprint)
     app.register_blueprint(api_blueprint)
     app.register_blueprint(hosts_blueprint)
+    app.register_blueprint(setup_blueprint)
 
 
     # Enable debug logging if debug arg provided

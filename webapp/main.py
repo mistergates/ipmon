@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from werkzeug.exceptions import HTTPException
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, app, scheduler
+from webapp import db, app, scheduler, config
 from webapp.api import get_web_themes, get_polling_config, get_active_theme
 from webapp.database import Polling, WebThemes
 from webapp.forms import PollingConfigForm, UpdatePasswordForm
@@ -24,15 +24,14 @@ main = Blueprint('main', __name__)
 #####################
 @app.before_first_request
 def webapp_init():
-    # Register scheduler jobs
-    update_poll_scheduler(int(json.loads(get_polling_config())['poll_interval']))
-    update_host_status_alert_schedule(int(json.loads(get_polling_config())['poll_interval']) / 2)
-    add_poll_history_cleanup_cron()
-    atexit.register(scheduler.shutdown)
-
     # Register error handling
     for cls in HTTPException.__subclasses__():
         app.register_error_handler(cls, handle_error)
+
+    if not database_configured():
+        return
+
+    init_schedulers()
 
 
 #####################
@@ -47,9 +46,9 @@ def favicon():
 @main.route('/')
 def index():
     '''Index page'''
-    # interval = int(json.loads(get_polling_config())['poll_interval']) * 1000
-    interval = int(10) * 1000
-    return render_template('index.html', poll_interval=interval)
+    if not os.path.exists(config['Database_Path']):
+        return redirect(url_for('setup.setup'))
+    return render_template('index.html', refresh_interval=10000)
 
 
 @main.route("/account")
@@ -131,10 +130,26 @@ def handle_error(error):
     return render_template('error.html', code=code, desc=desc)
 
 
+def init_schedulers():
+    # Register scheduler jobs
+    update_poll_scheduler(int(json.loads(get_polling_config())['poll_interval']))
+    update_host_status_alert_schedule(int(json.loads(get_polling_config())['poll_interval']) / 2)
+    add_poll_history_cleanup_cron()
+    atexit.register(scheduler.shutdown)
+
+
 ##########################
 # Custom Jinja Functions #
 ##########################
 def get_active_theme_path():
     '''Get the file path for the active theme'''
+    if not database_configured():
+        return '/static/css/darkly.min.css'
     return json.loads(get_active_theme())['theme_path']
 app.add_template_global(get_active_theme_path, name='get_active_theme_path')
+
+
+def database_configured():
+    '''Checks to see if database is configured'''
+    return os.path.exists(config['Database_Path'])
+app.add_template_global(database_configured, name='database_configured')

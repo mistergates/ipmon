@@ -17,15 +17,15 @@ class FirstTimeSetupForm(FlaskForm):
         config['Password_Policy']['Nonletters']
     )
     username = StringField('Username', validators=[DataRequired(message="Username required")])
-    email = StringField('Email Address', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
+    email = StringField('Email Address', validators=[DataRequired(message="Email address required"), Email(message="Invalid email address")])
     password = PasswordField('Password', description=password_policy, validators=[DataRequired(message="New password required")])
     verify_password = PasswordField('Verify Password', validators=[DataRequired(message="Password verification required")])
-    interval = StringField('Polling Interval')
-    retention_days = StringField('Poll History Retention Days')
+    poll_interval = IntegerField('Polling Interval (Seconds)', validators=[DataRequired(message="Polling interval required")])
+    retention_days = IntegerField('Poll History Retention (Days)', validators=[DataRequired(message="Poll history retention required")])
     enable_smtp = BooleanField('Enable SMTP Alerts')
-    smtp_server = StringField('Server', validators=[DataRequired(message="Server required")])
-    smtp_port = IntegerField('Port', validators=[DataRequired(message="Port required"), NumberRange(min=0, message="Invalid port number")])
-    smtp_sender = StringField('Sender Address', validators=[DataRequired(message="Sender address required"), Email(message="Invalid email address")])
+    smtp_server = StringField('Server')
+    smtp_port = StringField('Port')
+    smtp_sender = StringField('Sender Address')
     submit = SubmitField('Submit')
 
 

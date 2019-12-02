@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from webapp import login_manager, db, config, log
 from webapp.database import Users, Schemas
 from webapp.forms import LoginForm, UpdatePasswordForm
+from webapp.main import database_configured
 
 auth = Blueprint('auth', __name__)
 
@@ -184,8 +185,11 @@ def get_user(username):
     Returns:
         dict
     """
-    user_data = Users.query.filter_by(username=username).first()
-    return Schemas.USER_SCHEMA.dump(user_data)
+    if database_configured():
+        user_data = Users.query.filter_by(username=username).first()
+        return Schemas.USER_SCHEMA.dump(user_data)
+    else:
+        return None
 
 
 def verify_password(username, password):

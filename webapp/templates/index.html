@@ -157,8 +157,8 @@
     updateHostCounts();
 
     // Update datatable and host counts at interval of {{ poll_interval }} seconds
-    setInterval(updateTable, {{ poll_interval }});
-    setInterval(updateHostCounts, {{ poll_interval }});
+    setInterval(updateTable, {{ refresh_interval }});
+    setInterval(updateHostCounts, {{ refresh_interval }});
   });
 
 </script>
