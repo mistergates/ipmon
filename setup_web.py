@@ -4,26 +4,26 @@ This stands up a quick Flask Webapp to configure our main app
 '''
 import os
 import sys
-import getpass
 import uuid
 import webbrowser
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
-try:
-    from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    from passlib.hash import sha256_crypt
-    from sqlalchemy import create_engine
+# try:
+from flask import Flask, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from passlib.hash import sha256_crypt
+from sqlalchemy import create_engine
 
-    from webapp import config
-except ImportError:
-    print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'requirements.txt'
-            )
-    ))
-    sys.exit(1)
+from webapp import config
+from webapp.forms import FirstTimeSetupForm
+# except ImportError:
+    # print('\nFailed to load required modules. Try running "pip install -r {}" from command line.\n'.format(
+    #     os.path.join(
+    #         os.path.dirname(os.path.realpath(__file__)),
+    #         'requirements.txt'
+    #         )
+    # ))
+    # sys.exit(1)
 
 
 app = Flask(__name__)
@@ -34,10 +34,28 @@ db = SQLAlchemy()
 db.init_app(app)
 
 
+@app.route('/')
+def home():
+    return redirect(url_for('setup'))
+
 
 @app.route('/setup')
 def setup():
-    return '<p>Hello World</p>'
+    form = FirstTimeSetupForm()
+    html = """
+<html>
+<head>
+    <title>IPMON Setup</title>
+</head>
+<body>
+    <form method="POST" action="/setup" novalidate>
+        <h1>Admin User Setup</h1>
+        {0}<br>{1}
+""".format(
+    form.username.label(),
+    form.username()
+)
+    return html
 
 
 if __name__ == '__main__':
