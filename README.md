@@ -52,5 +52,5 @@ By default, the web server will be running on ***http://127.0.0.1:80***
   * Remove User
   * Rese Password
 * Allow adding hosts by hostname
-  * Do a nslookup to find IP address
+  * nslookup to find IP address
   * Fail and skip adding of host if nslookup fails
