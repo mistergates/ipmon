@@ -1,4 +1,4 @@
-![preview](https://i.imgur.com/LjrrYNk.png)
+![preview](https://github.com/mistergates/ipmon/tree/master/webapp/static/images/ipmon.PNG)
 
 Monitor IP addresses by polling them via ICMP (ping) requests.
 
@@ -24,14 +24,10 @@ From the main directory of this repo, run the following command:
 pip install -r requirements.txt
 ```
 
-## 3) Run Setup
-From the main directory of this repo, run the following command and follow the interactive setup:
+## 3) Configuration
+Follow the directions below to run the web server and navigate to the server once it's running. You will be redirected to a setup page to perform first time setup on the web application/database.
 
-```
-python setup.py
-```
-
-***Note:*** You will configure an admin account during setup, this account will need to be used for full functionality. By default, unauthenticated visitors will only be able to view IP statuses.
+***Note:*** You will configure an admin account during setup, this account will need to be used for full functionality. By default, unauthenticated visitors will only be able to view IP statuses
 
 # Running Web Server
 To run the web server the most basic (lazy) way, you can run the following from the main directory of this repo:
@@ -39,14 +35,13 @@ To run the web server the most basic (lazy) way, you can run the following from 
 python webserv.py
 ```
 
+There are some configurable arguments, to view those simply run:
+```
+python webserv.py -h
+```
+
 By default, the web server will be running on ***http://127.0.0.1:80***
 
-***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
 
-# TODO
-- Document APIs
-- Configure job to truncate poll logs (user controls how far to keep logs)
-- Automatically update database if schema changes
-- Create module for input validations
-- Move host management to own module/blueprint
-- Move javascript to static file
+
+***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)

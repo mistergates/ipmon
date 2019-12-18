@@ -1,0 +1,125 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+
+
+<div class="column is-8 is-offset-2">
+    <section class="hero is-info">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title is-2">
+                    IPMON First Time Setup
+                </h1>
+                <h2 class="subtitle is-4">
+                    Initial Configuration
+                </h2>
+            </div>
+        </div>
+    </section>
+
+    <form method="POST" action="{{ url_for('setup.setup') }}" onsubmit="showLoader();" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Admin Account -->
+        <div class="box">
+            <p class="title is=3">Admin Account</p>
+            <p class="subtitle is=5">
+                The admin account will have privilege to add/manage hosts, configure SMTP, Polling etc. 
+                Unauthenticated visitors will only be able to view the host status on the main page.
+            </p>
+            <div class="field">
+                <div class="control">
+                    {{ form.username.label(class_="label") }}
+                    {{ form.username(class_="input is-medium") }}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.email.label(class_="label") }}
+                    {{ form.email(class_="input is-medium") }}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.password.label(class_="label") }}
+                    {{ form.password(class_="input is-medium") }}
+                </div>
+                <p class="help">{{ form.password.description }}</p>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.verify_password.label(class_="label") }}
+                    {{ form.verify_password(class_="input is-medium") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Polling -->
+        <div class="box">
+            <p class="title is=3">Polling Configuration</p>
+            <p class="subtitle is=5">
+                Polling of hosts is executed on a timer defined in the polling interval below. 
+                The polling job executes a quick ping command to each host to check its status. 
+                A history of poll statuses will be kept for each host for the number of days defined below.
+            </p>
+            <div class="field">
+                <div class="control">
+                    {{ form.poll_interval.label(class_="label") }}
+                    {{ form.poll_interval(class_="input is-large", id="polling-interval") }}
+                    <p class="help">The amount of time in seconds between polling hosts</p>
+                </div>
+
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.retention_days.label(class_="label") }}
+                    {{ form.retention_days(class_="input is-large", id="history-retention") }}
+                    <p class="help">The number of days to keep poll history logs for each host</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SMTP -->
+        <div class="box">
+            <p class="title is=3">SMTP Configuration</p>
+            <p class="subtitle is=5">
+                SMTP configuration is optional. If SMTP is configured, alerts will be send to the admin account's email
+                address when hosts have a status change (down->up, up->down).
+            </p>
+            <!-- <div class="field">
+                <div class="control">
+                    {{ form.enable_smtp() }} {{ form.enable_smtp.label(_class="checkbox") }}
+                </div>
+            </div> -->
+            <div class="field">
+                <div class="control">
+                    {{ form.smtp_server.label(class_="label") }}
+                    {{ form.smtp_server(class_="input is-large", id="smtp-server") }}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.smtp_port.label(class_="label") }}
+                    {{ form.smtp_port(class_="input is-large", id="smtp-port") }}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    {{ form.smtp_sender.label(class_="label") }}
+                    {{ form.smtp_sender(class_="input is-large", id="smtp-sender") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="box">
+            <div class="control">
+                {{ form.submit(class_="button is-info is-medium") }}
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -36,6 +36,12 @@
                 });
             }
         });
+
+        // Show Loader
+        function showLoader() {
+            $("#main").addClass('is-hidden')
+            $("#loader").removeClass('is-hidden')
+        }
     
         // Modal Controls
         function modalClear() {
@@ -71,6 +77,48 @@
         function closeNotifications() {
             $("#notifications").css({"display": "none"})
         }
+
+        // Get Alerts
+        function getAlerts() {
+            
+        }
+
+        // Display Alerts
+        async function displayAlerts() {
+            var title='Host Alerts'
+            var body='<table id="alerts-table" class="table is-striped"></table>'
+            await modalClear();
+            await modalAddContent(title, body);
+
+            await $.ajax({
+                url: '{{ url_for("api.get_all_host_alerts") }}',
+                type: 'GET',
+                success: function (response) {
+                    var json_data = JSON.parse(response)
+                    var json = {
+                        "columns": [
+                            { "data": "hostname", "title": "Hostname" },
+                            { "data": "ip_address", "title": "IP Address" },
+                            { "data": "poll_time", "title": "Poll Time" },
+                            { "data": "host_status", "title": "Host Status" }
+                        ],
+                        "data": json_data
+                    }
+
+                    if ($.fn.DataTable.isDataTable('#alerts-table')) {
+                        $('#alerts-table').DataTable().destroy();
+                    }
+
+                    var table = $('#alerts-table').DataTable({
+                        "order": [[2, "desc"]],
+                        data: json.data,
+                        columns: json.columns
+                    });
+                }
+            });
+            await modalShow();
+        }
+
     </script>
 
 </head>
@@ -107,7 +155,7 @@
                 <div class="container">
                     <div class="navbar-brand">
                         <a href="{{ url_for('main.index') }}" class="navbar-item is-size-3 has-text-white">
-                            <i class="fas fa-network-wired has-text-success"></i>&nbsp;IPMON
+                            <i class="fas fa-network-wired"></i>&nbsp;IPMON
                         </a>
                         <span class="navbar-burger burger" data-target="navbarMenuHeroA">
                             <span></span>
@@ -115,19 +163,58 @@
                             <span></span>
                         </span>
                     </div>
+                    {% if database_configured() %}
                     <div id="navbarMenuHeroA" class="navbar-menu">
-                        <div class="navbar-end">
+                        <div class="navbar-start">
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.account') }}" class="navbar-item">
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">
+                                    Hosts
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a href="{{ url_for('hosts.add_hosts') }}" class="navbar-item">
+                                        Add Hosts
+                                    </a>
+                                    <a href="{{ url_for('hosts.update_hosts') }}" class="navbar-item">
+                                        Update Hosts
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">
+                                    Configure
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a href="{{ url_for('main.configure_polling') }}" class="navbar-item">
+                                        Polling
+                                    </a>
+                                    <a href="{{ url_for('smtp.configure_smtp') }}" class="navbar-item">
+                                        SMTP
+                                    </a>
+                                    <a  href="{{ url_for('main.set_theme') }}" class="navbar-item">
+                                        Theme
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="navbar-end">
+                            <a class="navbar-item" onClick="displayAlerts();">
+                                <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;Alerts
+                            </a>
+                            {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('main.account') }}" class="navbar-item">
                                 <i class="fas fa-user"></i>&nbsp;&nbsp;{{current_user.id}}
                             </a>
                             {% else %}
                             <a href="{{ url_for('auth.login') }}" class="navbar-item">
-                                Log in
+                                <i class="fas fa-user"></i>&nbsp;&nbsp;Log in
                             </a>
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
                 </div>
         </div>
         </div>
@@ -139,44 +226,17 @@
         <div class="hero-body">
             <div class="container">
                 <div class="columns">
-
-                    {% if current_user.is_authenticated %}
-                    <!-- Side Nav -->
-                    <div class="column is-2">
-                        <aside class="menu is-inline-block">
-                            <p class="menu-label">
-                                General
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                                <li><a href="{{ url_for('auth.account') }}">Account</a></li>
-                                <li><a href="{{ url_for('main.set_theme') }}">Theme</a></li>
-                            </ul>
-                            <p class="menu-label">
-                                Hosts
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('main.add_hosts') }}">Add Hosts</a></li>
-                                <li><a href="{{ url_for('main.update_hosts') }}">Update Hosts</a></li>
-                            </ul>
-                            <p class="menu-label">
-                                Polling
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('main.configure_polling') }}">Polling Configuration</a></li>
-                            </ul>
-                            <p class="menu-label">
-                                Notifications
-                            </p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('smtp.smtp_config') }}">Configure SMTP</a></li>
-                            </ul>
-                        </aside>
+                    <!-- Loader, displayed if main_content is doing something -->
+                    <div class="column is-hidden" id="loader">
+                        <section class="hero-body">
+                            <div class="container">
+                                <progress class="progress is-large is-info" max="100"></progress>
+                            </div>
+                        </section>
                     </div>
-                    {% endif %}
 
                     <!-- Main Content -->
-                    <div class="column">
+                    <div class="column" id="main">
                         <!-- Notifications -->
                         {% block content %}
                         {% endblock %}
@@ -190,7 +250,7 @@
     <footer class="footer is-fixed-bottom">
         <div class="content has-text-centered">
             <p>
-                <strong>IPMON</strong> by <a href="https://github.com/mistergates">Mitch Gates</a>.&nbsp;
+                <strong>IPMON</strong> by <a href="https://www.linkedin.com/in/mitchgates/">Mitch Gates</a>.&nbsp;
                 Source code is licensed <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
             </p>
             <div class="buttons is-centered">
@@ -202,6 +262,9 @@
                     </button>
                 </a>
             </div>
+            <a href="https://bulma.io" target="_blank">
+                <img src="/static/images/made-with-bulma.png" alt="Made with Bulma" width="128" height="24">
+            </a>
         </div>
     </footer>
 

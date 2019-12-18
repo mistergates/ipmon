@@ -4,59 +4,22 @@ import sys
 import re
 import flask_login
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import login_manager
-from webapp import db
-from webapp.database import Users, USER_SCHEMA
-
+from password_strength import PasswordPolicy
 from passlib.hash import sha256_crypt
 from flask import Blueprint, render_template, redirect, url_for, request, flash
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+from webapp import login_manager, db, config, log
+from webapp.database import Users, Schemas
+from webapp.forms import LoginForm, UpdatePasswordForm
+from webapp.main import database_configured
 
 auth = Blueprint('auth', __name__)
 
 
 ##########################
-# Database calls #########
-##########################
-def get_user(username):
-    """Get user based on username. Will try to find user via email if email address was provided.
-
-    Args:
-        username (str): Username
-
-    Returns:
-        dict
-    """
-    regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-    if re.search(regex, str(username)):
-        user_data = Users.query.filter_by(email=username).first()
-    else:
-        user_data = Users.query.filter_by(username=username).first()
-    return USER_SCHEMA.dump(user_data)
-
-
-def verify_password(form):
-    """Verify password entered using SHA256 Encryption.
-
-    Args:
-        form (dict): A dictionary of form info
-
-    Returns:
-        bool: Whether or not the password was verified.
-    """
-    return sha256_crypt.verify(form['password'], get_user(form['username'])['password'])
-
-
-##########################
 # Routes #################
 ##########################
-@auth.route("/account")
-@flask_login.login_required
-def account():
-    '''User Account'''
-    return render_template('account.html')
-
-
 @auth.route("/logout")
 @flask_login.login_required
 def logout():
@@ -69,23 +32,65 @@ def logout():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page'''
-    if request.method == 'GET':
-        return render_template('login.html')
+    form = LoginForm()
+    if request.method == 'GET': 
+        return render_template('login.html', form=form)
+    elif request.method == 'POST':
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
+            remember_me = form.remember_me.data
 
-    username = request.form['username']
-    remember = True if request.form.get('remember') else False
+            if not get_user(username) or not verify_password(username, password):
+                flash('Invalid Username/Password combination', 'danger')
+                return redirect(url_for('auth.login'))
 
-    if not get_user(username) or not verify_password(request.form):
-        flash('Invalid Username/Password')
-    elif verify_password(request.form):
-        user = User()
-        user.id = username
-        flask_login.login_user(user, remember=remember)
-        return redirect(url_for('main.index'))
-    else:
-        flash('Error logging in')
+            user = User()
+            user.id = username
+            flask_login.login_user(user, remember=remember_me)
+            return redirect(url_for('main.index'))
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
 
-    return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login'))
+
+
+
+@auth.route('/updatePassword', methods=['POST'])
+@flask_login.login_required
+def update_password():
+    form = UpdatePasswordForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            if not verify_password(flask_login.current_user.id, form.current_password.data):
+                flash('Current password is invalid', 'danger')
+                return redirect(url_for('main.account'))
+            if not form.new_password.data == form.verify_password.data:
+                flash('Passwords did not match', 'danger')
+                return redirect(url_for('main.account'))
+            if test_password(form.new_password.data):
+                reqs = form.new_password.description
+                flash('Password did not meet {}'.format(reqs), 'danger')
+                return redirect(url_for('main.account'))
+
+            try:
+                current_user = Users.query.filter_by(username=flask_login.current_user.id).first()
+                current_user.password = sha256_crypt.hash(form.new_password.data)
+                db.session.commit()
+                flash('Password successfully updated', 'success')
+            except Exception as exc:
+                log.error('Failed to update user password: {}'.format(exc))
+                flash('Failed to update password', 'danger')
+
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
+        
+        return redirect(url_for('main.account'))
+
 
 
 @auth.route('/addUser', methods=['GET', 'POST'])
@@ -159,7 +164,7 @@ def request_loader(req):
         # Username not found
         return
 
-    if not verify_password( {'username': username, 'password': password} ):
+    if not verify_password(username, password):
         # Invalid password provided
         return
 
@@ -167,3 +172,50 @@ def request_loader(req):
     user.id = username
 
     return user
+
+##########################
+# Functions ##############
+##########################
+def get_user(username):
+    """Get user based on username
+
+    Args:
+        username (str): Username
+
+    Returns:
+        dict
+    """
+    if database_configured():
+        user_data = Users.query.filter_by(username=username).first()
+        return Schemas.USER_SCHEMA.dump(user_data)
+    else:
+        return None
+
+
+def verify_password(username, password):
+    """Verify password entered using SHA256 Encryption.
+
+    Args:
+        form (dict): A dictionary of form info
+
+    Returns:
+        bool: Whether or not the password was verified.
+    """
+    return sha256_crypt.verify(password, get_user(username)['password'])
+
+
+def test_password(password):
+    """Verify a password meets our defined password policy
+
+    Args:
+        password (str): Password to test
+
+    Returns:
+        list: A list containing which tests have failed
+    """
+    policy = PasswordPolicy.from_names(
+        length=config['Password_Policy']['Length'],
+        uppercase=config['Password_Policy']['Uppercase'],
+        nonletters=config['Password_Policy']['Nonletters']
+    )
+    return policy.test(password)

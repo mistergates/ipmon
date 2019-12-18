@@ -2,45 +2,47 @@
 
 {% block content %}
 
-<div class="container has-text-centered">
-  <nav class="level">
-    <div class="level-item">
-      <div>
-        <p class="heading">Total Hosts</p>
-        <p class="title has-text-primary" id="total-hosts"></p>
-      </div>
-    </div>
-    <div class="level-item has-text-centered">
-      <div>
-        <p class="heading">Available Hosts</p>
-        <p class="title has-text-success" id="available-hosts"></p>
-      </div>
-    </div>
-    <div class="level-item has-text-centered">
-      <div>
-        <p class="heading">Unavailable Hosts</p>
-        <p class="title has-text-danger" id="unavailable-hosts"></p>
-      </div>
-    </div>
-  </nav>
-</div>
-
-<section class="hero-body" id="expand-me">
-  <button class="button is-small is-pulled-right" id="expand">
+<section id="expand-me">
+  <!-- Expand Button -->
+  <button class="button is-small is-pulled-right" id="expand" onClick="fullscreenToggle();">
     <span class="icon is-small">
       <i class="fa fa-window-maximize" id="expander"></i>
     </span>
   </button>
-  <table class="table is-striped" style="width:100%" id="ip-status">
-    <!-- Data Table -->
-  </table>
+
+  <!-- Host Counts -->
+  <div class="box has-text-centered">
+    <nav class="level">
+      <div class="level-item">
+        <div>
+          <p class="heading">Total Hosts</p>
+          <p class="title" id="total-hosts"></p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Available Hosts</p>
+          <p class="title has-text-success" id="available-hosts"></p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Unavailable Hosts</p>
+          <p class="title has-text-danger" id="unavailable-hosts"></p>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Data Table -->
+  <table class="table is-striped" id="ip-status"></table>
 </section>
 
 <script>
   // Update Datatable - Called on interval
   async function updateTable() {
     await $.ajax({
-      url: '/getHosts',
+      url: '{{ url_for("api.get_all_hosts") }}',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -60,10 +62,11 @@
 
         var table = $('#ip-status').DataTable({
           "order": [[3, "asc"]],
+          "iDisplayLength": 50,
           data: json.data,
           columns: json.columns,
-          paging: false,
           searching: false,
+          stateSave: true,
           'rowCallback': function (row, data, index) {
             var status_col = $(row).find('td:eq(3)')
             var last_poll_col = $(row).find('td:eq(2)')
@@ -79,7 +82,7 @@
               status_col.append('<i class="fas fa-arrow-circle-up"></i>');
             }
 
-            // Add link to last poll and event listener for loading poll history in modal
+            // Add link to load poll history for host
             var onClick = 'onClick="loadPollHistory(\'' + data['hostname'] + '\', \'' + data['id'] + '\')"'
             if (!$(last_poll_col).has("span").length) {
               last_poll_col.append('<span class="icon" style="cursor: pointer; margin-left: 10px;"' + onClick + '><i class="fa fa-history"></i></span>')
@@ -94,7 +97,7 @@
   // Updates Total, Active and Inactive host counts
   async function updateHostCounts() {
     await $.ajax({
-      url: '/getHostCounts',
+      url: '{{ url_for("api.get_host_counts") }}',
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -110,7 +113,7 @@
     await modalClear();
     await modalAddContent('Poll History', '<p class="title is-4">' + hostname + '</p><div class="table-container"><table class="table is-striped" id="modal-table" style="width:100%"></table></div>');
     await $.ajax({
-      url: '/getPollHistory/' + id,
+      url: '/pollHistory/' + id,
       type: 'GET',
       success: function (response) {
         var json_data = JSON.parse(response)
@@ -154,13 +157,8 @@
     updateHostCounts();
 
     // Update datatable and host counts at interval of {{ poll_interval }} seconds
-    setInterval(updateTable, {{ poll_interval }});
-    setInterval(updateHostCounts, {{ poll_interval }});
-
-    // Expand body listener
-    $("#expand").click(function () {
-      fullscreenToggle();
-    })
+    setInterval(updateTable, {{ refresh_interval }});
+    setInterval(updateHostCounts, {{ refresh_interval }});
   });
 
 </script>

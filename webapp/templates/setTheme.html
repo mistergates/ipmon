@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<section class="hero-body">
-    <p class="title">Set Theme</p>
-    <div class="container">
+<div class="column is-8 is-offset-2">
+    <div class="box">
+        <p class="title">Set Theme</p>
         <form method="POST" action="/setTheme">
             <div class="field">
                 <div class="select">
@@ -22,11 +22,9 @@
                     </select>
                 </div>
             </div>
-            <div class="control">
-                <button class="button is-block is-info is-medium">Update</button>
-            </div>
+            <button class="button is-info is-medium is-centered">Update</button>
         </form>
     </div>
-</section>
+</div>
 
 {% endblock %}

@@ -1,16 +1,18 @@
 '''SMTP Library'''
 import os
 import sys
-import flask_login
 import smtplib
+import json
 
+import flask_login
 from email.mime.text import MIMEText
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, scheduler, app
-from webapp.database import SmtpServer, SMTP_SCHEMA, Users, USER_SCHEMA, Hosts
-from webapp.main import get_alerts_enabled
+from webapp import db, log
+from webapp.database import SmtpServer, Schemas
+from webapp.api import get_alerts_enabled, get_smtp_configured, get_smtp_config
+from webapp.forms import SmtpConfigForm
 
 smtp = Blueprint('smtp', __name__)
 
@@ -18,34 +20,40 @@ smtp = Blueprint('smtp', __name__)
 ##########################
 # Routes #################
 ##########################
-@smtp.route("/smtpConfig", methods=['GET', 'POST'])
+@smtp.route("/configureSMTP", methods=['GET', 'POST', 'DELETE'])
 @flask_login.login_required
-def smtp_config():
+def configure_smtp():
     '''SMTP Config'''
+    form = SmtpConfigForm()
     if request.method == 'GET':
-        current_smtp = SMTP_SCHEMA.dump(SmtpServer.query.first())
-        return render_template('smtpConfig.html', smtp=current_smtp)
+        return render_template('smtpConfig.html', smtp=json.loads(get_smtp_config()), form=form)
     elif request.method == 'POST':
-        results = request.form.to_dict()
+        if form.validate_on_submit():
+            try:
+                smtp_conf = SmtpServer.query.first()
+                smtp_conf.smtp_server = form.server.data
+                smtp_conf.smtp_port = form.port.data
+                smtp_conf.smtp_sender = form.sender.data
+                db.session.commit()
+                flash('Successfully updated SMTP configuration', 'success')
+            except Exception as exc:
+                flash('Failed to update SMTP configuration: {}'.format(exc), 'danger')
+        else:
+            for dummy, errors in form.errors.items():
+                for error in errors:
+                    flash(error, 'danger')
+    elif request.method == 'DELETE':
         try:
-            smtp_conf = SmtpServer.query.filter_by(id='1').first()
-            if not smtp_conf:
-                smtp_conf = SmtpServer(
-                    smtp_server=results['smtp_server'],
-                    smtp_port=results['smtp_port'],
-                    smtp_sender=results['smtp_sender']
-                )
-                db.session.add(smtp_conf)
-            else:
-                smtp_conf.smtp_server = results['smtp_server']
-                smtp_conf.smtp_port = results['smtp_port']
-                smtp_conf.smtp_sender = results['smtp_sender']
+            smtp_conf = SmtpServer.query.first()
+            smtp_conf.smtp_server = ''
+            smtp_conf.smtp_port = ''
+            smtp_conf.smtp_sender = ''
             db.session.commit()
-            flash('Successfully updated SMTP configuration', 'success')
-        except Exception as exc:
-            flash('Failed to update SMTP configuration: {}'.format(exc), 'danger')
+            flash('Successfully removed SMTP configuration', 'success')
+        except Exception:
+            flash('Failed to remove SMTP configuration', 'danger')
 
-        return redirect(url_for('smtp.smtp_config'))
+    return redirect(url_for('smtp.configure_smtp'))
 
 
 @smtp.route("/smtpTest", methods=['POST'])
@@ -58,69 +66,34 @@ def smtp_test():
         message = 'IPMON SMTP Test Message'
 
         try:
-            _send_smtp_message(results['recipient'], subject, message)
+            send_smtp_message(results['recipient'], subject, message)
             flash('Successfully sent SMTP test message', 'success')
         except Exception as exc:
             flash('Failed to send SMTP test message: {}'.format(exc), 'danger')
 
-    return redirect(url_for('smtp.smtp_config'))
-
-
-def host_status_change_alerts():
-    '''Send SMTP alert if host statuses have changed'''
-    with app.app_context():
-        if get_alerts_enabled() and _smtp_enabled():
-            message = ''
-            for host in Hosts.query.filter_by(status_change_alert=True):
-                message += '{} [{}] Status changed from {} to {} at {}\n\n'.format(
-                    host.hostname,
-                    host.ip_address,
-                    host.previous_status,
-                    host.status,
-                    host.last_poll
-                )
-                # Set status_change_alert to False so we don't send duplicated alerts
-                host.status_change_alert = False
-
-            db.session.commit()
-
-            if message:
-                print('Sending SMTP Alert')
-                _send_smtp_message(
-                    recipient=USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
-                    subject='IPMON - Host Status Change Alert',
-                    message='{} [{}] Status changed from {} to {} at {}.'.format(
-                        host.hostname,
-                        host.ip_address,
-                        host.previous_status,
-                        host.status,
-                        host.last_poll
-                    )
-                )
-
-
-def update_status_change_alert_schedule(alert_interval):
-    '''Updates the PHost Status Change Alert schedula via APScheduler'''
-    # Attempt to remove the current scheduler
-    try:
-        scheduler.scheduler.remove_job('Host Status Change Alert')
-    except Exception:
-        pass
-
-    scheduler.scheduler.add_job(id='Host Status Change Alert', func=host_status_change_alerts, trigger='interval', seconds=int(alert_interval), max_instances=1)
+    return redirect(url_for('smtp.configure_smtp'))
 
 
 ##########################
-# Private Functions ######
+# Functions ##############
 ##########################
-def _send_smtp_message(recipient, subject, message):
-    current_smtp = SMTP_SCHEMA.dump(SmtpServer.query.first())
+def send_smtp_message(recipient, subject, message):
+    '''Send SMTP message'''
+    current_smtp = json.loads(get_smtp_config())
+
+    if not json.loads(get_smtp_configured())['smtp_configured']:
+        log.error('Attempting to send SMTP message but SMTP not configured.')
+        return
 
     msg = MIMEText(message)
     msg['Subject'] = subject
     msg['From'] = current_smtp['smtp_sender']
 
-    server = smtplib.SMTP(current_smtp['smtp_server'], current_smtp['smtp_port'], timeout=10)
+    try:
+        server = smtplib.SMTP(current_smtp['smtp_server'], current_smtp['smtp_port'], timeout=10)
+    except Exception as exc:
+        log.error('Failed to start SMTP server: {}'.format(exc))
+        raise exc
 
     # Secure the connection
     server.starttls()
@@ -132,10 +105,3 @@ def _send_smtp_message(recipient, subject, message):
     # Send message
     server.sendmail(current_smtp['smtp_sender'], recipient, msg.as_string())
     server.quit()
-
-def _smtp_enabled():
-    smtp_conf = SmtpServer.query.filter_by(id='1').first()
-    if not smtp_conf:
-        return False
-    else:
-        return True

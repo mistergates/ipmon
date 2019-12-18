@@ -21,7 +21,7 @@
                 {% set ip = host['ip_address'] %}
                 <tr>
                     <td>
-                        <span class="icon" style="cursor: pointer;"
+                        <span class="icon has-text-info" style="cursor: pointer;"
                             onClick="updateHostModal('{{ id }}', '{{ hostname }}', '{{ ip }}')">
                             <i class="fa fa-edit"></i>
                         </span>
@@ -47,8 +47,7 @@
 <script>
     $(document).ready(function () {
         $('#hosts').DataTable({
-            paging: false,
-            stateSave: true
+            "order": [[1, "asc"]]
         })
     });
 
@@ -63,7 +62,6 @@
         await modalAddContent('Update', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/updateHosts">' + idFieldHidden + hostnameField + ipField + submitButton + '</form></div>');
         await modalShow();
     }
-
 
     // Delete host modal
     // Submitting the form in this modal deletes the host

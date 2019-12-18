@@ -1,9 +1,8 @@
 flask
 flask_login
-flask-sqlalchemy
+flask_sqlalchemy
+flask_wtf
 sqlalchemy
 marshmallow
 passlib
-flask_apscheduler
-# flask_script
-# flask_migrate
+password-strength
