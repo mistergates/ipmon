@@ -45,3 +45,12 @@ By default, the web server will be running on ***http://127.0.0.1:80***
 
 
 ***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
+
+# TO DO
+* Add user management under configuration
+  * Add User
+  * Remove User
+  * Rese Password
+* Allow adding hosts by hostname
+  * Do a nslookup to find IP address
+  * Fail and skip adding of host if nslookup fails
