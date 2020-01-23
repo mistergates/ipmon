@@ -2,7 +2,8 @@ flask
 flask_login
 flask_sqlalchemy
 flask_wtf
+flask_migrate
 sqlalchemy
 marshmallow
 passlib
-password-strength
+password_strength

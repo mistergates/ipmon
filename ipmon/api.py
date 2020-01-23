@@ -7,8 +7,9 @@ import json
 from flask import Blueprint
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db
-from webapp.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, HostAlerts, Schemas
+from ipmon import db
+from ipmon.database import Hosts, Polling, PollHistory, WebThemes, Users, SmtpServer, HostAlerts
+from ipmon.schemas import Schemas
 
 api = Blueprint('api', __name__)
 
@@ -18,13 +19,13 @@ api = Blueprint('api', __name__)
 @api.route('/hosts', methods=['GET'])
 def get_all_hosts():
     '''Get all hosts'''
-    return json.dumps(Schemas.HOSTS_SCHEMA.dump(Hosts.query.all()))
+    return json.dumps(Schemas.hosts(many=True).dump(Hosts.query.all()))
 
 
 @api.route('/hosts/<id>', methods=['GET'])
 def get_host(_id):
     '''Get host by ID'''
-    return json.dumps(Schemas.HOST_SCHEMA.dump(Hosts.query.filter_by(id=_id).first()))
+    return json.dumps(Schemas.hosts(many=False).dump(Hosts.query.filter_by(id=_id).first()))
 
 
 @api.route('/hostsDataTable', methods=['GET'])
@@ -37,38 +38,38 @@ def get_all_hosts_datatable():
             { "data": "last_poll", "title": "Last Poll" },
             { "data": "status", "title": "Status" }
         ],
-        "data": Schemas.HOSTS_SCHEMA.dump(Hosts.query.all())
+        "data": Schemas.hosts(many=True).dump(Hosts.query.all())
     }
     return json.dumps(data)
 
 @api.route('/hostAlerts', methods=['GET'])
 def get_all_host_alerts():
-    '''Get new host alerts'''
-    return json.dumps(Schemas.HOST_ALERTS_SCHEMA.dump(HostAlerts.query.join(Hosts).all()))
+    '''Get all host alerts'''
+    return json.dumps(Schemas.host_alerts(many=True).dump(HostAlerts.query.join(Hosts).all()))
 
 
 @api.route('/hostAlerts/new', methods=['GET'])
 def get_new_host_alerts():
     '''Get new host alerts'''
-    return json.dumps(Schemas.HOST_ALERTS_SCHEMA.dump(HostAlerts.query.filter_by(alert_cleared=False)))
+    return json.dumps(Schemas.host_alerts(many=True).dump(HostAlerts.query.filter_by(alert_cleared=False)))
 
 
 @api.route('/pollingConfig', methods=['GET'])
 def get_polling_config():
     '''Get polling config'''
-    return json.dumps(Schemas.POLLING_SCHEMA.dump(Polling.query.filter_by(id=1).first()))
+    return json.dumps(Schemas.polling_config().dump(Polling.query.filter_by(id=1).first()))
 
 
 @api.route('/pollHistory/<host_id>', methods=['GET'])
 def get_poll_history(host_id):
     '''Get poll history for a single host'''
-    return json.dumps(Schemas.POLL_HISTORY_SCHEMA.dump(PollHistory.query.filter_by(host_id=host_id)))
+    return json.dumps(Schemas.poll_history(many=True).dump(PollHistory.query.filter_by(host_id=host_id)))
 
-
+# TODO Should check this by user id
 @api.route('/alertsEnabled', methods=['GET'])
 def get_alerts_enabled():
     '''Get whether alerts are enabled or not'''
-    status = Schemas.USER_SCHEMA.dump(Users.query.first())['alerts_enabled']
+    status = Schemas.users(many=False).dump(Users.query.first())['alerts_enabled']
     return json.dumps({'alerts_enabled': status})
 
 
@@ -84,19 +85,19 @@ def get_smtp_configured():
 @api.route('/smtpConfig', methods=['GET'])
 def get_smtp_config():
     '''Get SMTP config'''
-    return json.dumps(Schemas.SMTP_SCHEMA.dump(SmtpServer.query.first()))
+    return json.dumps(Schemas.smtp_config().dump(SmtpServer.query.first()))
 
 
 @api.route('/webThemes', methods=['GET'])
 def get_web_themes():
     '''Get all web themese'''
-    return json.dumps(Schemas.WEB_THEMES_SCHEMA.dump(WebThemes.query.all()))
+    return json.dumps(Schemas.web_themes(many=True).dump(WebThemes.query.all()))
 
 
 @api.route('/webThemes/active', methods=['GET'])
 def get_active_theme():
     '''Get active theme'''
-    return json.dumps(Schemas.WEB_THEME_SCHEMA.dump(WebThemes.query.filter_by(active=True).first()))
+    return json.dumps(Schemas.web_themes(many=False).dump(WebThemes.query.filter_by(active=True).first()))
 
 
 @api.route('/hostCounts', methods=['GET'])

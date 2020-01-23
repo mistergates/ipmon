@@ -32,25 +32,36 @@ Follow the directions below to run the web server and navigate to the server onc
 # Running Web Server
 To run the web server the most basic (lazy) way, you can run the following from the main directory of this repo:
 ```
-python webserv.py
+flask run
+```
+If no arguments are provided, the web server will be running on ***http://127.0.0.1:5000***
+
+If you'd like to specify a host/port, you can use the following arguments:
+```
+flask run -h <host> -p <port>
 ```
 
-There are some configurable arguments, to view those simply run:
+To view all arguments:
 ```
-python webserv.py -h
+flask run --help
 ```
-
-By default, the web server will be running on ***http://127.0.0.1:80***
-
-
 
 ***Note:*** It would be wise to move this to a WSGI server for production use, see [here](https://flask.palletsprojects.com/en/1.1.x/deploying/)
+
+
+## 4) Datbase Migrations
+In the event the database schema changes a migration will need to occur. These migrations can be found in `migrations/versions/`
+
+To perform a database migration, stop web services then run the following command from the main directory of this repo:
+```
+flask db upgrade
+```
 
 # TO DO
 * Add user management under configuration
   * Add User
   * Remove User
-  * Rese Password
+  * Reset Password
 * Allow adding hosts by hostname
   * nslookup to find IP address
   * Fail and skip adding of host if nslookup fails

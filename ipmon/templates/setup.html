@@ -83,16 +83,11 @@
 
         <!-- SMTP -->
         <div class="box">
-            <p class="title is=3">SMTP Configuration</p>
+            <p class="title is=3">SMTP Configuration (optional)</p>
             <p class="subtitle is=5">
                 SMTP configuration is optional. If SMTP is configured, alerts will be send to the admin account's email
-                address when hosts have a status change (down->up, up->down).
+                address when hosts have a status change (down->up, up->down). Leave fields empty to leave unconfigured.
             </p>
-            <!-- <div class="field">
-                <div class="control">
-                    {{ form.enable_smtp() }} {{ form.enable_smtp.label(_class="checkbox") }}
-                </div>
-            </div> -->
             <div class="field">
                 <div class="control">
                     {{ form.smtp_server.label(class_="label") }}

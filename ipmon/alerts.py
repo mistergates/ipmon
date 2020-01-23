@@ -6,10 +6,11 @@ import json
 from multiprocessing.pool import ThreadPool
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, scheduler, app, config, log
-from webapp.database import Users, Hosts, HostAlerts, Schemas
-from webapp.api import get_alerts_enabled, get_smtp_configured
-from webapp.smtp import send_smtp_message
+from ipmon import db, scheduler, app, config, log
+from ipmon.database import Users, Hosts, HostAlerts
+from ipmon.schemas import Schemas
+from ipmon.api import get_alerts_enabled, get_smtp_configured
+from ipmon.smtp import send_smtp_message
 
 
 def update_host_status_alert_schedule(alert_interval):
@@ -49,9 +50,10 @@ def _host_status_alerts_threaded():
                 message += thread.get()
 
             if message:
+                recipients = ';'.join(x['email'] for x in Schemas.users(many=True).dump(Users.query.filter_by(alerts_enabled=True)))
                 try:
                     send_smtp_message(
-                        recipient=Schemas.USER_SCHEMA.dump(Users.query.filter_by(id='1').first())['email'],
+                        recipient=recipients,
                         subject='IPMON - Host Status Change Alert',
                         message=message
                     )
@@ -64,7 +66,7 @@ def _host_status_alerts_threaded():
 def _get_alert_status_message(alert):
     with app.app_context():
         host = Hosts.query.filter_by(id=alert.host_id).first()
-        message = '{} [{}] Status changed from {} to {} at {}\n\n'.format(
+        message = '<b>{} [{}]</b>: Status changed from <b>"{}"</b> to <b>"{}"</b> at {}<br><br>'.format(
             host.hostname,
             host.ip_address,
             host.previous_status,

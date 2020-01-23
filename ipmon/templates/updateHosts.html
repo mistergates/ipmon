@@ -16,17 +16,14 @@
             </thead>
             <tbody>
                 {% for host in hosts %}
-                {% set id = host['id'] %}
-                {% set hostname = host['hostname'] %}
-                {% set ip = host['ip_address'] %}
                 <tr>
                     <td>
-                        <span class="icon has-text-info" style="cursor: pointer;"
-                            onClick="updateHostModal('{{ id }}', '{{ hostname }}', '{{ ip }}')">
+                            <span class="icon has-text-info" style="cursor: pointer;"
+                                onClick='updateHostModal({{ host|tojson|safe }})'>
                             <i class="fa fa-edit"></i>
                         </span>
                         <span class="icon has-text-danger" style="cursor: pointer;"
-                            onClick="deleteHostModal('{{ id }}', '{{ hostname }}')">
+                            onClick='deleteHostModal({{ host|tojson|safe }})'>
                             <i class="fa fa-trash"></i>
                         </span>
                     </td>
@@ -53,22 +50,30 @@
 
     // Update host modal
     // Submitting the form in this modal updates the host
-    async function updateHostModal(id, hostname, ip) {
-        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + id + '"></div>'
-        var hostnameField = '<div class="field"><label class="label">Hostname</label><div class="control"><input class="input is-medium" type="text" name="hostname" placeholder=" ' + hostname + '"></div></div>'
-        var ipField = '<div class="field"><label class="label">IP Address</label><div class="control"><input class="input is-medium" type="text" name="ip_address" placeholder=" ' + ip + '"></div></div>'
+    async function updateHostModal(host) {
+        var yc = ''
+        var nc = ''
+        if (host.alerts_enabled == true) {
+            yc = 'checked'
+        } else {
+            nc = 'checked'
+        }
+        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + host.id + '"></div>'
+        var hostnameField = '<div class="field"><label class="label">Hostname</label><div class="control"><input class="input is-medium" type="text" name="hostname" placeholder=" ' + host.hostname + '"></div></div>'
+        var ipField = '<div class="field"><label class="label">IP Address</label><div class="control"><input class="input is-medium" type="text" name="ip_address" placeholder=" ' + host.ip_address + '"></div></div>'
+        var alertsField = '<div class="field"><label class="label">Alerts Enabled</label><div class="control"><label class="radio"><input type="radio" name="alerts" value="True"' + yc + '> Yes</label><label class="radio"><input type="radio" name="alerts" value="False" ' + nc +'> No</label></div></div>'
         var submitButton = '<div class="control"><button class="button is-block is-info is-medium">Update</button></div>'
         await modalClear();
-        await modalAddContent('Update', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/updateHosts">' + idFieldHidden + hostnameField + ipField + submitButton + '</form></div>');
+        await modalAddContent('Update', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/updateHosts">' + idFieldHidden + hostnameField + ipField + alertsField + submitButton + '</form></div>');
         await modalShow();
     }
 
     // Delete host modal
     // Submitting the form in this modal deletes the host
-    async function deleteHostModal(id, hostname) {
-        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + id + '"></div>'
-        var hostnameFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="hostname" value="' + hostname + '"></div>'
-        var confirmDelete = '<p class="title is-5">Delete ' + hostname + '?</p>'
+    async function deleteHostModal(host) {
+        var idFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="id" value="' + host.id + '"></div>'
+        var hostnameFieldHidden = '<div class="field is-hidden"><input class="input is-medium" type="text" name="hostname" value="' + host.hostname + '"></div>'
+        var confirmDelete = '<p class="title is-5">Delete ' + host.hostname + '?</p>'
         var deleteButton = '<div class="control"><button class="button is-danger is-info is-medium">Delete</button></div>'
         await modalClear();
         await modalAddContent('Delete', '<div class="container"><div class="overlay" id="notification"></div></div><div class="table-container"><form method="POST" action="/deleteHost">' + confirmDelete + idFieldHidden + hostnameFieldHidden  + deleteButton + '</form></div>');

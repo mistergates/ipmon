@@ -8,11 +8,11 @@ from multiprocessing.pool import ThreadPool
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp.database import Hosts, PollHistory, HostAlerts
-from webapp import db, config, log
-from webapp.api import get_all_hosts
-from webapp.polling import poll_host
-from webapp.forms import AddHostsForm
+from ipmon.database import Hosts, PollHistory, HostAlerts
+from ipmon import db, config, log
+from ipmon.api import get_all_hosts
+from ipmon.polling import poll_host
+from ipmon.forms import AddHostsForm
 from wtforms.validators import IPAddress
 
 hosts = Blueprint('hosts', __name__)
@@ -83,6 +83,8 @@ def update_hosts():
                 host.hostname = results['hostname']
             if results['ip_address']:
                 host.ip_address = results['ip_address']
+            if results['alerts'] != str(host.alerts_enabled):
+                host.alerts_enabled = False if results['alerts'] == 'False' else True
             db.session.commit()
             flash('Successfully updated host {}'.format(host.hostname), 'success')
         except Exception:

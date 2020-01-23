@@ -9,6 +9,7 @@ import uuid
 from password_strength import PasswordPolicy
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template
+from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
@@ -43,6 +44,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(config['Database_P
 db = SQLAlchemy()
 db.init_app(app)
 
+# Database Migration
+migrate = Migrate(app, db)
+
 # Scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -66,3 +70,19 @@ file_handler = logging.FileHandler(logfile)
 logfile_format = '%(asctime)s [%(levelname)s] <%(filename)s:%(lineno)s> - %(message)s'
 file_handler.setFormatter(logging.Formatter(logfile_format, '%Y-%m-%d %H:%M:%S'))
 log.addHandler(file_handler)
+
+
+# Register Blueprints
+from ipmon.main import main as main_blueprint
+from ipmon.auth import auth as auth_blueprint
+from ipmon.smtp import smtp as smtp_blueprint
+from ipmon.api import api as api_blueprint
+from ipmon.hosts import hosts as hosts_blueprint
+from ipmon.setup import bp as setup_blueprint
+
+app.register_blueprint(main_blueprint)
+app.register_blueprint(auth_blueprint)
+app.register_blueprint(smtp_blueprint)
+app.register_blueprint(api_blueprint)
+app.register_blueprint(hosts_blueprint)
+app.register_blueprint(setup_blueprint)

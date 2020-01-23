@@ -7,7 +7,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Integ
 from wtforms.validators import DataRequired, Email, NumberRange
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import config
+from ipmon import config
 
 
 class FirstTimeSetupForm(FlaskForm):

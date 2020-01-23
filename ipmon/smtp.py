@@ -9,10 +9,10 @@ from email.mime.text import MIMEText
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, log
-from webapp.database import SmtpServer, Schemas
-from webapp.api import get_alerts_enabled, get_smtp_configured, get_smtp_config
-from webapp.forms import SmtpConfigForm
+from ipmon import db, log
+from ipmon.database import SmtpServer
+from ipmon.api import get_smtp_configured, get_smtp_config
+from ipmon.forms import SmtpConfigForm
 
 smtp = Blueprint('smtp', __name__)
 
@@ -85,7 +85,7 @@ def send_smtp_message(recipient, subject, message):
         log.error('Attempting to send SMTP message but SMTP not configured.')
         return
 
-    msg = MIMEText(message)
+    msg = MIMEText(message, 'html')
     msg['Subject'] = subject
     msg['From'] = current_smtp['smtp_sender']
 

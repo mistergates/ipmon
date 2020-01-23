@@ -1,7 +1,6 @@
 '''User Auth Library'''
 import os
 import sys
-import re
 import flask_login
 
 from password_strength import PasswordPolicy
@@ -9,13 +8,13 @@ from passlib.hash import sha256_crypt
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import login_manager, db, config, log
-from webapp.database import Users, Schemas
-from webapp.forms import LoginForm, UpdatePasswordForm
-from webapp.main import database_configured
+from ipmon import login_manager, db, config, log
+from ipmon.database import Users
+from ipmon.schemas import Schemas
+from ipmon.forms import LoginForm, UpdatePasswordForm
+from ipmon.main import database_configured
 
 auth = Blueprint('auth', __name__)
-
 
 ##########################
 # Routes #################
@@ -88,7 +87,7 @@ def update_password():
             for dummy, errors in form.errors.items():
                 for error in errors:
                     flash(error, 'danger')
-        
+
         return redirect(url_for('main.account'))
 
 
@@ -187,7 +186,7 @@ def get_user(username):
     """
     if database_configured():
         user_data = Users.query.filter_by(username=username).first()
-        return Schemas.USER_SCHEMA.dump(user_data)
+        return Schemas.users(many=False).dump(user_data)
     else:
         return None
 

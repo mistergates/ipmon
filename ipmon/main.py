@@ -9,12 +9,12 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from werkzeug.exceptions import HTTPException
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, app, scheduler, config
-from webapp.api import get_web_themes, get_polling_config, get_active_theme
-from webapp.database import Polling, WebThemes
-from webapp.forms import PollingConfigForm, UpdatePasswordForm
-from webapp.polling import update_poll_scheduler, add_poll_history_cleanup_cron
-from webapp.alerts import update_host_status_alert_schedule
+from ipmon import db, app, scheduler, config
+from ipmon.api import get_web_themes, get_polling_config, get_active_theme
+from ipmon.database import Polling, WebThemes
+from ipmon.forms import PollingConfigForm, UpdatePasswordForm
+from ipmon.polling import update_poll_scheduler, add_poll_history_cleanup_cron
+from ipmon.alerts import update_host_status_alert_schedule
 from wtforms.validators import NumberRange
 
 main = Blueprint('main', __name__)

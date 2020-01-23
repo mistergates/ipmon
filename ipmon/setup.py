@@ -7,11 +7,11 @@ from sqlalchemy import create_engine
 from passlib.hash import sha256_crypt
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import db, config, app
-from webapp.database import Users, Polling, SmtpServer, WebThemes
-from webapp.forms import FirstTimeSetupForm
-from webapp.main import init_schedulers, database_configured
-from webapp.auth import test_password
+from ipmon import db, config, app
+from ipmon.database import Users, Polling, SmtpServer, WebThemes
+from ipmon.forms import FirstTimeSetupForm
+from ipmon.main import init_schedulers, database_configured
+from ipmon.auth import test_password
 
 bp = Blueprint('setup', __name__)
 

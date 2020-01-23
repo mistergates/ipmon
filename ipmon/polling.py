@@ -11,9 +11,9 @@ from multiprocessing.pool import ThreadPool
 from datetime import date, timedelta
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
-from webapp import app, db, scheduler, log, config
-from webapp.database import Hosts, PollHistory, HostAlerts
-from webapp.api import get_all_hosts, get_host, get_polling_config, get_poll_history
+from ipmon import app, db, scheduler, log, config
+from ipmon.database import Hosts, PollHistory, HostAlerts
+from ipmon.api import get_all_hosts, get_host, get_polling_config, get_poll_history
 
 
 def poll_host(host, new_host=False, count=1):
@@ -97,6 +97,7 @@ def _poll_host_task(host_id):
     with app.app_context():
         host_info = json.loads(get_host(int(host_id)))
         status, poll_time, hostname = poll_host(host_info['ip_address'])
+        host_alert = None
 
         # Update host status
         host_info['previous_status'] = host_info['status']
@@ -113,8 +114,8 @@ def _poll_host_task(host_id):
             poll_status=status
         )
 
-        host_alert = None
-        if host_info['previous_status'] != status:
+        log.info('{} - {}'.format(host_info['alerts_enabled'], type(host_info['alerts_enabled'])))
+        if host_info['alerts_enabled'] and host_info['previous_status'] != status:
             # Create alert if status changed
             host_alert = HostAlerts(
                 host_id=host_info['id'],
