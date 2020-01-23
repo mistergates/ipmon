@@ -1,4 +1,4 @@
-![preview](https://raw.githubusercontent.com/mistergates/ipmon/master/webapp/static/images/ipmon.PNG)
+![preview](https://raw.githubusercontent.com/mistergates/ipmon/master/ipmon/static/images/ipmon.PNG)
 
 Monitor IP addresses by polling them via ICMP (ping) requests.
 
