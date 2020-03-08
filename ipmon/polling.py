@@ -16,7 +16,7 @@ from ipmon.database import Hosts, PollHistory, HostAlerts
 from ipmon.api import get_all_hosts, get_host, get_polling_config, get_poll_history
 
 
-def poll_host(host, new_host=False, count=1):
+def poll_host(host, new_host=False, count=3):
     '''Poll host via ICMP ping to see if it is up/down'''
     hostname = None
 
