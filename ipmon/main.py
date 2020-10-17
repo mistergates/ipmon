@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from ipmon import db, app, scheduler, config
 from ipmon.api import get_web_themes, get_polling_config, get_active_theme
 from ipmon.database import Polling, WebThemes
-from ipmon.forms import PollingConfigForm, UpdatePasswordForm
+from ipmon.forms import PollingConfigForm, UpdatePasswordForm, UpdateEmailForm
 from ipmon.polling import update_poll_scheduler, add_poll_history_cleanup_cron
 from ipmon.alerts import update_host_status_alert_schedule
 from wtforms.validators import NumberRange
@@ -56,7 +56,8 @@ def index():
 def account():
     '''User Account'''
     password_form = UpdatePasswordForm()
-    return render_template('account.html', password_form=password_form)
+    email_form = UpdateEmailForm()
+    return render_template('account.html', password_form=password_form, email_form=email_form)
 
 
 @main.route('/setTheme', methods=['GET', 'POST'])

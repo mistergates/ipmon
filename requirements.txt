@@ -7,3 +7,5 @@ sqlalchemy
 marshmallow
 passlib
 password_strength
+apscheduler
+email_validator

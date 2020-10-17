@@ -48,6 +48,13 @@ class UpdatePasswordForm(FlaskForm):
     submit = SubmitField('Update')
 
 
+class UpdateEmailForm(FlaskForm):
+    email = StringField('New Email Address', validators=[DataRequired(message="Email address required"), Email(message="Invalid email address")])
+    email_verify = StringField('Verify Email Address', validators=[DataRequired(message="Verify Email address required"), Email(message="Invalid email address")])
+    password = PasswordField('Password', validators=[DataRequired(message="Password required")])
+    submit = SubmitField('Update')
+
+
 class SmtpConfigForm(FlaskForm):
     server = StringField('Server', validators=[DataRequired(message="Server required")])
     port = IntegerField('Port', validators=[DataRequired(message="Port required"), NumberRange(min=0, message="Invalid port number")])
