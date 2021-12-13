@@ -5,7 +5,6 @@ import tempfile
 import time
 import uuid
 
-from password_strength import PasswordPolicy
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template
 from flask_migrate import Migrate
