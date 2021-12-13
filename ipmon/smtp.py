@@ -4,7 +4,6 @@ import sys
 import smtplib
 import json
 
-import flask_login
 from email.mime.text import MIMEText
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
@@ -21,7 +20,6 @@ smtp = Blueprint('smtp', __name__)
 # Routes #################
 ##########################
 @smtp.route("/configureSMTP", methods=['GET', 'POST', 'DELETE'])
-@flask_login.login_required
 def configure_smtp():
     '''SMTP Config'''
     form = SmtpConfigForm()
@@ -57,7 +55,6 @@ def configure_smtp():
 
 
 @smtp.route("/smtpTest", methods=['POST'])
-@flask_login.login_required
 def smtp_test():
     '''Send SMTP test email'''
     if request.method == 'POST':

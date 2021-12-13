@@ -7,7 +7,7 @@ from multiprocessing.pool import ThreadPool
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from ipmon import db, scheduler, app, config, log
-from ipmon.database import Users, Hosts, HostAlerts
+from ipmon.database import Hosts, HostAlerts
 from ipmon.schemas import Schemas
 from ipmon.api import get_alerts_enabled, get_smtp_configured
 from ipmon.smtp import send_smtp_message

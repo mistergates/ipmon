@@ -4,15 +4,14 @@ import sys
 import json
 import atexit
 
-import flask_login
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from ipmon import db, app, scheduler, config
 from ipmon.api import get_web_themes, get_polling_config, get_active_theme
-from ipmon.database import Polling, WebThemes
-from ipmon.forms import PollingConfigForm, UpdatePasswordForm, UpdateEmailForm
+from ipmon.database import Polling, WebThemes, Users
+from ipmon.forms import PollingConfigForm, UpdateEmailForm
 from ipmon.polling import update_poll_scheduler, add_poll_history_cleanup_cron
 from ipmon.alerts import update_host_status_alert_schedule
 from wtforms.validators import NumberRange
@@ -52,16 +51,14 @@ def index():
 
 
 @main.route("/account")
-@flask_login.login_required
 def account():
     '''User Account'''
-    password_form = UpdatePasswordForm()
     email_form = UpdateEmailForm()
-    return render_template('account.html', password_form=password_form, email_form=email_form)
+    current_email = Users.query.first().email
+    return render_template('account.html', email_form=email_form, email=current_email)
 
 
 @main.route('/setTheme', methods=['GET', 'POST'])
-@flask_login.login_required
 def set_theme():
     '''Set Theme'''
     if request.method == 'GET':
@@ -84,7 +81,6 @@ def set_theme():
 
 
 @main.route('/configurePolling', methods=['GET', 'POST'])
-@flask_login.login_required
 def configure_polling():
     '''Poll Interval'''
     form = PollingConfigForm()

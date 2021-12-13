@@ -5,7 +5,7 @@ class UsersSchema(Schema):
     '''Users schema'''
     class Meta:
         '''Metadata'''
-        fields = ('id', 'username', 'password', 'email', 'date_created', 'alerts_enabled')
+        fields = ('id', 'email', 'date_created', 'alerts_enabled')
 
 
 class HostsSchema(Schema):

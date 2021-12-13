@@ -4,14 +4,12 @@ import sys
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from sqlalchemy import create_engine
-from passlib.hash import sha256_crypt
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 from ipmon import db, config, app
 from ipmon.database import Users, Polling, SmtpServer, WebThemes
 from ipmon.forms import FirstTimeSetupForm
 from ipmon.main import init_schedulers, database_configured
-from ipmon.auth import test_password
 
 bp = Blueprint('setup', __name__)
 
@@ -23,21 +21,7 @@ def setup():
             return redirect(url_for('main.index'))
         return render_template('setup.html', form=form)
     elif request.method == 'POST':
-        if form.validate_on_submit():
-            errors = 0
-            if form.password.data != form.verify_password.data:
-                flash('Passwords did not match', '')
-                errors += 1
-
-            if test_password(form.password.data):
-                reqs = form.password.description
-                flash('Password did not meet {}'.format(reqs), 'danger')
-                errors += 1
-
-            if errors:
-                return redirect(url_for('setup.setup'))
-
-        else:
+        if not form.validate_on_submit():
             for dummy, errors in form.errors.items():
                 for error in errors:
                     flash(error, 'danger')
@@ -55,8 +39,8 @@ def setup():
         db.Model.metadata.create_all(engine)
 
         # Create admin user
-        admin_user = Users(email=form.email.data, username=form.username.data, password=sha256_crypt.hash(form.password.data))
-        db.session.add(admin_user)
+        user = Users(email=form.email.data)
+        db.session.add(user)
 
         # Set polling interval
         poll = Polling(poll_interval=form.poll_interval.data, history_truncate_days=form.retention_days.data)

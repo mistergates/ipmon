@@ -166,7 +166,6 @@
                     {% if database_configured() %}
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
-                            {% if current_user.is_authenticated %}
                             <div class="navbar-item has-dropdown is-hoverable">
                                 <a class="navbar-link">
                                     Hosts
@@ -185,6 +184,9 @@
                                     Configure
                                 </a>
                                 <div class="navbar-dropdown">
+                                    <a href="{{ url_for('main.account') }}" class="navbar-item">
+                                        Email
+                                    </a>
                                     <a href="{{ url_for('main.configure_polling') }}" class="navbar-item">
                                         Polling
                                     </a>
@@ -196,22 +198,12 @@
                                     </a>
                                 </div>
                             </div>
-                            {% endif %}
                         </div>
 
                         <div class="navbar-end">
                             <a class="navbar-item" onClick="displayAlerts();">
                                 <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;Alerts
                             </a>
-                            {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.account') }}" class="navbar-item">
-                                <i class="fas fa-user"></i>&nbsp;&nbsp;{{current_user.id}}
-                            </a>
-                            {% else %}
-                            <a href="{{ url_for('auth.login') }}" class="navbar-item">
-                                <i class="fas fa-user"></i>&nbsp;&nbsp;Log in
-                            </a>
-                            {% endif %}
                         </div>
                     </div>
                     {% endif %}

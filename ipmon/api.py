@@ -1,7 +1,6 @@
 '''API Module'''
 import os
 import sys
-import flask_login
 import json
 
 from flask import Blueprint

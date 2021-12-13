@@ -1,7 +1,6 @@
 '''Hosts Module'''
 import os
 import sys
-import flask_login
 import json
 
 from multiprocessing.pool import ThreadPool
@@ -21,7 +20,6 @@ hosts = Blueprint('hosts', __name__)
 # Routes #############
 ######################
 @hosts.route('/addHosts', methods=['GET', 'POST'])
-@flask_login.login_required
 def add_hosts():
     '''Add Hosts Page'''
     form = AddHostsForm()
@@ -70,7 +68,6 @@ def add_hosts():
 
 
 @hosts.route('/updateHosts', methods=['GET', 'POST'])
-@flask_login.login_required
 def update_hosts():
     '''Update Hosts'''
     if request.method == 'GET':
@@ -94,7 +91,6 @@ def update_hosts():
 
 
 @hosts.route('/deleteHost', methods=['POST'])
-@flask_login.login_required
 def delete_host():
     '''Delete Hosts Page'''
     if request.method == 'POST':

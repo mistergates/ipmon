@@ -1,7 +1,6 @@
 '''Package init file'''
 import os
 import logging
-import flask_login
 import tempfile
 import time
 import uuid
@@ -50,11 +49,6 @@ migrate = Migrate(app, db)
 # Scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
-
-# Authentication Manager
-login_manager = flask_login.LoginManager()
-login_manager.init_app(app)
-
 
 # Create logger
 log = logging.getLogger('IPMON')

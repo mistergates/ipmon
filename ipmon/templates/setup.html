@@ -21,36 +21,16 @@
     <form method="POST" action="{{ url_for('setup.setup') }}" onsubmit="showLoader();" novalidate>
         {{ form.hidden_tag() }}
 
-        <!-- Admin Account -->
+        <!-- Email Address -->
         <div class="box">
-            <p class="title is=3">Admin Account</p>
+            <p class="title is=3">Email Address</p>
             <p class="subtitle is=5">
-                The admin account will have privilege to add/manage hosts, configure SMTP, Polling etc. 
-                Unauthenticated visitors will only be able to view the host status on the main page.
+                Configure an email address to receive alerts.
             </p>
-            <div class="field">
-                <div class="control">
-                    {{ form.username.label(class_="label") }}
-                    {{ form.username(class_="input is-medium") }}
-                </div>
-            </div>
             <div class="field">
                 <div class="control">
                     {{ form.email.label(class_="label") }}
                     {{ form.email(class_="input is-medium") }}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.password.label(class_="label") }}
-                    {{ form.password(class_="input is-medium") }}
-                </div>
-                <p class="help">{{ form.password.description }}</p>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ form.verify_password.label(class_="label") }}
-                    {{ form.verify_password(class_="input is-medium") }}
                 </div>
             </div>
         </div>

@@ -4,10 +4,8 @@
 
 <div class="column is-8 is-offset-2">
     <div class="box">
-        <h3 class="title">Hello, <b>{{ current_user.id }}</b> ({{ current_user.email }})!</h3>
-        <form action="{{ url_for('auth.logout') }}">
-            <button class="button is-danger is-medium">Logout</button>
-        </form>
+        <p class="title">Current Email Address</p>
+        <p>{{ email }}</p>
     </div>
     <div class="box">
         <p class="title">Update Email</p>
@@ -25,39 +23,7 @@
                     {{ email_form.email_verify(class_="input is-medium") }}
                 </div>
             </div>
-            <div class="field">
-                <div class="control">
-                    {{ email_form.password.label(class_="label") }}
-                    {{ email_form.password(class_="input is-medium") }}
-                </div>
-            </div>
             {{ email_form.submit(class_="button is-block is-info is-medium") }}
-        </form>
-    </div>
-    <div class="box">
-        <p class="title">Update Password</p>
-        <form action="{{ url_for('auth.update_password') }}" method="POST" novalidate>
-            {{ password_form.hidden_tag() }}
-            <div class="field">
-                <div class="control">
-                    {{ password_form.current_password.label(class_="label") }}
-                    {{ password_form.current_password(class_="input is-medium") }}
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ password_form.new_password.label(class_="label") }}
-                    {{ password_form.new_password(class_="input is-medium") }}
-                    <p class="help">{{ password_form.new_password.description }}</p>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    {{ password_form.verify_password.label(class_="label") }}
-                    {{ password_form.verify_password(class_="input is-medium") }}
-                </div>
-            </div>
-            {{ password_form.submit(class_="button is-block is-info is-medium") }}
         </form>
     </div>
 </div>
