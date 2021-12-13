@@ -4,7 +4,5 @@ flask_wtf
 flask_migrate
 sqlalchemy
 marshmallow
-passlib
-password_strength
 apscheduler
 email_validator
